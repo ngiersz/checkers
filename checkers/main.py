@@ -31,32 +31,30 @@ def findCheesboard(image):
 
     gray = cv2.cvtColor(imageBlack, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
+    thresh = cv2.threshold(blurred, 130, 255, cv2.THRESH_BINARY_INV)[1]
     cv2.imshow("1thresh", thresh)
     kernel = np.ones((5, 5), np.uint8)
-    thresh = cv2.erode(thresh, kernel, iterations=2)
+    thresh = cv2.erode(thresh, kernel, iterations=1)
     # find contours in the thresholded imageBlack and initialize the
     # shape detector
     cnts1 = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
                             cv2.CHAIN_APPROX_SIMPLE)
     # contures of black fields
     cnts = imutils.grab_contours(cnts1)
-    print(len(cnts))
 
     imageWhite = cv2.bitwise_not(imageWhite)
     gray = cv2.cvtColor(imageWhite, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
+    thresh = cv2.threshold(blurred, 130, 255, cv2.THRESH_BINARY_INV)[1]
     kernel = np.ones((5, 5), np.uint8)
     thresh = cv2.erode(thresh, kernel, iterations=2)
-    cv2.imshow("2", thresh)
+    cv2.imshow("2thresh", thresh)
     # find contours in the thresholded blurred and initialize the
     # shape detector
     cnts2 = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
                             cv2.CHAIN_APPROX_SIMPLE)
 
     # add contures of white fields
-    print(len(imutils.grab_contours(cnts2)))
     cnts = imutils.grab_contours(cnts2) + cnts
     cnts.reverse()
 
@@ -97,7 +95,7 @@ def main():
     cam = cv2.VideoCapture(1)
     cam.set(3, 640)
     cam.set(4, 480)
-    cam.set(5, 1)
+    cam.set(5, 75)
     show_webcam(cam)
     # imageResult = findCheesboard(image)
     # cv2.imshow("Result", imageResult)
