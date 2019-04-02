@@ -1,5 +1,5 @@
 import cv2
-import ShapeDetector
+import checkers.ShapeDetector as ShapeDetector
 import argparse
 import imutils
 import time
@@ -26,6 +26,7 @@ def show_webcam(cam, mirror=False):
 
 
 def findCheesboard(image):
+
     imageBlack = image.copy()
     imageWhite = image.copy()
 
@@ -34,7 +35,7 @@ def findCheesboard(image):
     thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
     kernel = np.ones((5, 5), np.uint8)
     thresh = cv2.erode(thresh, kernel, iterations=1)
-    cv2.imshow("1thresh", thresh)
+    #cv2.imshow("1thresh", thresh)
     # find contours in the thresholded imageBlack and initialize the
     # shape detector
     cnts1 = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
@@ -48,7 +49,7 @@ def findCheesboard(image):
     thresh = cv2.threshold(blurred, 80, 255, cv2.THRESH_BINARY_INV)[1]
     kernel = np.ones((5, 5), np.uint8)
     thresh = cv2.erode(thresh, kernel, iterations=1)
-    cv2.imshow("2thresh", thresh)
+    #cv2.imshow("2thresh", thresh)
     # find contours in the thresholded blurred and initialize the
     # shape detector
     cnts2 = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
@@ -77,6 +78,7 @@ def findCheesboard(image):
         shape = sd.detect(c)
         if shape == 'square':
             cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
+
         # compute the center of the contour, then detect the name of the
         # shape using only the contour
         # M = cv2.moments(c)
@@ -90,24 +92,6 @@ def findCheesboard(image):
     return image
 
 
-def main():
-    image = cv2.imread("hm.png")
-    cam = cv2.VideoCapture(1)
-    cam.set(3, 640)
-    cam.set(4, 480)
-    cam.set(5, 75)
-    show_webcam(cam)
-    # imageResult = findCheesboard(image)
-    # cv2.imshow("Result", imageResult)
-    # cv2.waitKey(0)
-    # # while True:
-    # while True:
-    #     image = show_webcam(cam, mirror=False)
-    #     cv2.imwrite("hm.png", image)
-    # imageResult = findCheesboard(image)
 
 
 
-
-if __name__ == '__main__':
-    main()
