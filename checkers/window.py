@@ -1,46 +1,38 @@
-import msvcrt
 import pygame
-from pygame.locals import *
 import cv2
 import numpy as np
-import sys
 import checkers.checkers_detector as c_d
-
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-BROWN = (66, 38, 17)
-BEIGE = (255, 255, 180)
-
-SIZE = (1920, 1080)
-# SIZE = (500, 400)
-RECT_SIZE = SIZE[0]/20
-CHECKER_SIZE = SIZE[0]/30
-
-RECT_OFFSET_X = SIZE[0]/2
-RECT_OFFSET_Y = SIZE[0]/30
-
-CAMERA_H = int(SIZE[1]/2)
-CAMERA_W = int(SIZE[0]/2.5)
-
-CHECKER_OFFSET_X = RECT_OFFSET_X + (RECT_SIZE - CHECKER_SIZE) / 2
-CHECKER_OFFSET_Y = RECT_OFFSET_Y + (RECT_SIZE - CHECKER_SIZE) / 2
 
 
 class Window:
+    BLACK = (0, 0, 0)
+    WHITE = (255, 255, 255)
+    BROWN = (66, 38, 17)
+    BEIGE = (255, 255, 180)
 
-    @staticmethod
-    def draw_window():
+    SIZE = (1920, 1080)
+    RECT_SIZE = SIZE[0] / 20
+    CHECKER_SIZE = SIZE[0] / 30
+    CAMERA_H = int(SIZE[1] / 2)
+    CAMERA_W = int(SIZE[0] / 2.5)
+
+    RECT_OFFSET_X = SIZE[0] / 2
+    RECT_OFFSET_Y = SIZE[0] / 30
+    CHECKER_OFFSET_X = RECT_OFFSET_X + (RECT_SIZE - CHECKER_SIZE) / 2
+    CHECKER_OFFSET_Y = RECT_OFFSET_Y + (RECT_SIZE - CHECKER_SIZE) / 2
+
+    def __init__(self):
+        pygame.init()
+        self.camera = cv2.VideoCapture(0)
+
+    def draw_window(self):
         """
         Main function that draws window and calls for other functions
         """
-        pygame.init()
-
-        camera = cv2.VideoCapture(0)
-        pygame.init()
         pygame.display.set_caption("OpenCV camera stream on Pygame")
 
         # Set the width and height of the screen [width, height]
-        screen = pygame.display.set_mode(SIZE, pygame.FULLSCREEN)
+        screen = pygame.display.set_mode(self.SIZE, pygame.FULLSCREEN)
         pygame.display.set_caption("checkers")
 
         # Loop until the user clicks the close button.
@@ -67,11 +59,9 @@ class Window:
                 elif event.type == pygame.QUIT:
                     done = True
             # --- camera
-            ret, frame = camera.read()
-            frame = cv2.resize(frame, (CAMERA_W, CAMERA_H))
+            ret, frame = self.camera.read()
+            frame = cv2.resize(frame, (self.CAMERA_W, self.CAMERA_H))
             frame = cv2.cvtColor(frame, 3)
-            #frame = np.rot90(frame)
-            #frame = pygame.surfarray.make_surface(frame)
 
             # --- Game logic should go here
 
@@ -88,7 +78,7 @@ class Window:
             # If you want a background image, replace this clear with blit'ing the
             # background image.
 
-            screen.fill(BEIGE)
+            screen.fill(self.BEIGE)
 
             # Drawing chessboard
             p = 0
@@ -97,22 +87,34 @@ class Window:
                 r = 0
                 for j in i:
                     if j == 0:
-                        # pygame.Surface.blit(black_img, screen, [RECT_OFFSET_X + (RECT_SIZE * r), RECT_OFFSET_Y + p * RECT_SIZE, RECT_SIZE, RECT_SIZE])
-                        pygame.draw.rect(screen, BROWN, [RECT_OFFSET_X + (RECT_SIZE * r), RECT_OFFSET_Y + p * RECT_SIZE, RECT_SIZE, RECT_SIZE])
+                        pygame.draw.rect(screen, self.BROWN, [self.RECT_OFFSET_X + (self.RECT_SIZE * r),
+                                                              self.RECT_OFFSET_Y + p * self.RECT_SIZE,
+                                                              self.RECT_SIZE, self.RECT_SIZE])
                     elif j == 1:
-                        # pygame.Surface.blit(white_img, screen, [RECT_OFFSET_X + (RECT_SIZE * r), RECT_OFFSET_Y + p * RECT_SIZE, RECT_SIZE, RECT_SIZE])
-                        pygame.draw.rect(screen, WHITE, [RECT_OFFSET_X + (RECT_SIZE * r), RECT_OFFSET_Y + p * RECT_SIZE, RECT_SIZE, RECT_SIZE])
+                        pygame.draw.rect(screen, self.WHITE, [self.RECT_OFFSET_X + (self.RECT_SIZE * r),
+                                                              self.RECT_OFFSET_Y + p * self.RECT_SIZE,
+                                                              self.RECT_SIZE, self.RECT_SIZE])
                     elif j == 2:
-                        pygame.draw.rect(screen, BROWN, [RECT_OFFSET_X + (RECT_SIZE * r), RECT_OFFSET_Y + p * RECT_SIZE, RECT_SIZE, RECT_SIZE])
-                        pygame.draw.ellipse(screen, WHITE, [CHECKER_OFFSET_X + (RECT_SIZE * r), CHECKER_OFFSET_Y + p * RECT_SIZE, CHECKER_SIZE, CHECKER_SIZE])
+                        pygame.draw.rect(screen, self.BROWN, [self.RECT_OFFSET_X + (self.RECT_SIZE * r),
+                                                              self.RECT_OFFSET_Y + p * self.RECT_SIZE,
+                                                              self.RECT_SIZE, self.RECT_SIZE])
+
+                        pygame.draw.ellipse(screen, self.WHITE, [self.CHECKER_OFFSET_X + (self.RECT_SIZE * r),
+                                                                 self.CHECKER_OFFSET_Y + p * self.RECT_SIZE,
+                                                                 self.CHECKER_SIZE, self.CHECKER_SIZE])
                     elif j == 3:
-                        pygame.draw.rect(screen,BROWN , [RECT_OFFSET_X + (RECT_SIZE * r), RECT_OFFSET_Y + p * RECT_SIZE, RECT_SIZE, RECT_SIZE])
-                        pygame.draw.ellipse(screen, BLACK, [CHECKER_OFFSET_X + (RECT_SIZE * r), CHECKER_OFFSET_Y + p * RECT_SIZE, CHECKER_SIZE, CHECKER_SIZE])
+                        pygame.draw.rect(screen, self.BROWN, [self.RECT_OFFSET_X + (self.RECT_SIZE * r),
+                                                              self.RECT_OFFSET_Y + p * self.RECT_SIZE,
+                                                              self.RECT_SIZE, self.RECT_SIZE])
+
+                        pygame.draw.ellipse(screen, self.BLACK, [self.CHECKER_OFFSET_X + (self.RECT_SIZE * r),
+                                                                 self.CHECKER_OFFSET_Y + p * self.RECT_SIZE,
+                                                                 self.CHECKER_SIZE, self.CHECKER_SIZE])
                     r = r+1
                 p = p+1
             img = np.rot90(img)
             img = pygame.surfarray.make_surface(img)
-            screen.blit(img, (SIZE[0]/30, SIZE[1]/30))
+            screen.blit(img, (self.SIZE[0]/30, self.SIZE[1]/30))
             pygame.display.update()
             # --- Drawing code should go here
 
@@ -125,6 +127,11 @@ class Window:
         # Close the window and quit.
         pygame.quit()
 
+    def main(self):
+        self.draw_window()
+
+
 
 if __name__ == '__main__':
-    Window.draw_window()
+    win = Window()
+    win.main()
