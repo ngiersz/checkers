@@ -1,32 +1,16 @@
 import cv2
 import checkers.ShapeDetector as ShapeDetector
-import argparse
 import imutils
-import time
 import numpy as np
 
-def show_webcam(cam, mirror=False):
 
-    while True:
-        ret_val, img = cam.read()
-        # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # ret, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
-        if mirror:
-            img = cv2.flip(img, 1)
-        img = findCheesboard(img)
-        cv2.imshow('Chessboard', img)
-
-        if cv2.waitKey(1) == 27:
-            break  # esc to quit
-    cv2.destroyAllWindows()
-    # ret_val, img = cam.read()
-    # cv2.imshow("Asdasd",img)
-    # cv2.waitKey(0)
-    # return img
-
-
-def findCheesboard(image):
-
+def find_chessboard(image):
+    """
+            Function that finds fields on the image and draws
+            them on it
+            returns:
+                image as cv2 frame
+    """
     imageBlack = image.copy()
     imageWhite = image.copy()
 
@@ -86,8 +70,6 @@ def findCheesboard(image):
         # cY = int((M["m01"] / M["m00"]))
         # cv2.putText(image, shape, (cX, cY), cv2.FONT_HERSHEY_SIMPLEX,
         #             0.5, (255, 255, 255), 2)
-
-
 
     return image
 
