@@ -11,8 +11,8 @@ class MenuWindow:
     def __init__(self):
         pygame.init()
         os.environ['SDL_VIDEO_CENTERED'] = '1'  # Center the Game Application
-        self.screen = pygame.display.set_mode(ccm.MENU_SIZE)  # Game Resolution
-        self.clock = pygame.time.Clock()  # Game Frame rate
+        self._screen = pygame.display.set_mode(ccm.MENU_SIZE, pygame.FULLSCREEN)  # Game Resolution
+        self._clock = pygame.time.Clock()  # Game Frame rate
 
     def main_menu(self):
         menu = True
@@ -37,7 +37,7 @@ class MenuWindow:
                             quit()
 
             # Main Menu UI
-            self.screen.fill(ccc.BLUE)
+            self._screen.fill(ccc.BLUE)
 
             title = text_format("Checkers", ccm.FONT, ccm.TITLE_FONT, ccc.YELLOW)
             if selected == "start":
@@ -54,11 +54,11 @@ class MenuWindow:
             quit_rect = text_quit.get_rect()
 
             # Main Menu Text
-            self.screen.blit(title, (ccm.MENU_SIZE[0] / 2 - (title_rect[2] / 2), ccm.MENU_SIZE[1]/3))
-            self.screen.blit(text_start, (ccm.MENU_SIZE[0] / 2 - (start_rect[2] / 2), ccm.MENU_SIZE[1]/3 + 200))
-            self.screen.blit(text_quit, (ccm.MENU_SIZE[0] / 2 - (quit_rect[2] / 2), ccm.MENU_SIZE[1]/3 + 350))
+            self._screen.blit(title, (ccm.MENU_SIZE[0] / 2 - (title_rect[2] / 2), ccm.MENU_SIZE[1] / 3))
+            self._screen.blit(text_start, (ccm.MENU_SIZE[0] / 2 - (start_rect[2] / 2), ccm.MENU_SIZE[1] / 3 + 200))
+            self._screen.blit(text_quit, (ccm.MENU_SIZE[0] / 2 - (quit_rect[2] / 2), ccm.MENU_SIZE[1] / 3 + 350))
             pygame.display.update()
-            self.clock.tick(ccm.FPS)
+            self._clock.tick(ccm.FPS)
             pygame.display.set_caption("Checkers Main Menu")
 
 

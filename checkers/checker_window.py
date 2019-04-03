@@ -1,4 +1,5 @@
 import pygame
+import pygame.gfxdraw
 import cv2
 import numpy as np
 import checkers.checkers_detector as c_d
@@ -9,19 +10,27 @@ import checkers.configs.config_colors as ccc
 class CheckersWindow:
 
     def __init__(self):
-        #pygame.init()
         self._camera = cv2.VideoCapture(0)
-        self._tab = [[3, 1, 3, 1, 3, 1, 3, 1],
-                     [1, 3, 1, 3, 1, 3, 1, 3],
-                     [3, 1, 3, 1, 3, 1, 3, 1],
+        self._tab = [[0, 1, 2, 1, 2, 1, 3, 1],
                      [1, 0, 1, 0, 1, 0, 1, 0],
                      [0, 1, 0, 1, 0, 1, 0, 1],
-                     [1, 2, 1, 2, 1, 2, 1, 2],
-                     [2, 1, 2, 1, 2, 1, 2, 1],
-                     [1, 2, 1, 2, 1, 2, 1, 2]]
+                     [1, 0, 1, 0, 1, 0, 1, 0],
+                     [0, 1, 0, 1, 0, 1, 0, 1],
+                     [1, 0, 1, 0, 1, 0, 1, 0],
+                     [0, 1, 0, 1, 0, 1, 0, 1],
+                     [1, 0, 1, 0, 1, 0, 1, 0]]
         self._screen = pygame.display.set_mode(ccw.SIZE, pygame.FULLSCREEN)
         self._done = False
         pygame.display.set_caption("checkers")
+        self._black_field = ccc.BLACK
+        self._white_field = ccc.WHITE
+        self._white_pawn = ccc.WHITE
+        self._black_pawn = ccc.BLACK
+
+        self.init_textures()
+
+
+
 
     def draw_window(self):
         """
@@ -65,29 +74,33 @@ class CheckersWindow:
                 f_counter = 0
                 for field in row:
                     if field == 0:
-                        pygame.draw.rect(self._screen, ccc.BROWN, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                                   ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                                   ccw.RECT_SIZE, ccw.RECT_SIZE])
+                        self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                              ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                              ccw.RECT_SIZE, ccw.RECT_SIZE])
                     elif field == 1:
-                        pygame.draw.rect(self._screen, ccc.WHITE, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                                   ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                                   ccw.RECT_SIZE, ccw.RECT_SIZE])
+                        self._screen.blit(self._white_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                              ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                              ccw.RECT_SIZE, ccw.RECT_SIZE])
                     elif field == 2:
-                        pygame.draw.rect(self._screen, ccc.BROWN, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                                   ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                                   ccw.RECT_SIZE, ccw.RECT_SIZE])
+                        self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                              ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                              ccw.RECT_SIZE, ccw.RECT_SIZE])
 
-                        pygame.draw.ellipse(self._screen, ccc.WHITE, [ccw.CHECKER_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                                      ccw.CHECKER_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                                      ccw.CHECKER_SIZE, ccw.CHECKER_SIZE])
+                        # self._screen.blit(self._white_pawn, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                        #                                       ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                        #                                       ccw.RECT_SIZE, ccw.RECT_SIZE])
+
+                        pygame.draw.ellipse(self._screen, ccc.WHITE, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                                      ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                                      ccw.PAWN_SIZE, ccw.PAWN_SIZE])
                     elif field == 3:
-                        pygame.draw.rect(self._screen, ccc.BROWN, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                                   ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                                   ccw.RECT_SIZE, ccw.RECT_SIZE])
+                        self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                              ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                              ccw.RECT_SIZE, ccw.RECT_SIZE])
 
-                        pygame.draw.ellipse(self._screen, ccc.BLACK, [ccw.CHECKER_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                                      ccw.CHECKER_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                                      ccw.CHECKER_SIZE, ccw.CHECKER_SIZE])
+                        pygame.draw.ellipse(self._screen, ccc.BLACK, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                                      ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                                      ccw.PAWN_SIZE, ccw.PAWN_SIZE])
                     f_counter = f_counter+1
                 r_counter = r_counter+1
 
@@ -105,7 +118,17 @@ class CheckersWindow:
             clock.tick(60)
 
         # Close the window and quit.
-        #pygame.quit()
+
+    def init_textures(self):
+        self._black_field = cv2.resize(ccw.BLACK_FIELD, (ccw.RECT_SIZE, ccw.RECT_SIZE))
+        self._black_field = pygame.surfarray.make_surface(self._black_field)
+        self._white_field = cv2.resize(ccw.WHITE_FIELD, (ccw.RECT_SIZE, ccw.RECT_SIZE))
+        self._white_field = pygame.surfarray.make_surface(self._white_field)
+        self._white_pawn = cv2.resize(ccw.WHITE_PAWN, (ccw.RECT_SIZE, ccw.RECT_SIZE))
+        self._white_pawn = pygame.surfarray.make_surface(self._white_pawn)
+        self._black_pawn = cv2.resize(ccw.BLACK_PAWN, (ccw.RECT_SIZE, ccw.RECT_SIZE))
+        self._black_pawn = pygame.surfarray.make_surface(self._black_pawn)
+
 
     def main(self):
         self.draw_window()
