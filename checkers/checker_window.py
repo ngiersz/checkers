@@ -11,7 +11,7 @@ class CheckersWindow:
 
     def __init__(self):
         self._camera = cv2.VideoCapture(0)
-        self._tab = [[0, 1, 2, 1, 2, 1, 3, 1],
+        self._tab = [[0, 1, 0, 1, 0, 1, 0, 1],
                      [1, 0, 1, 0, 1, 0, 1, 0],
                      [0, 1, 0, 1, 0, 1, 0, 1],
                      [1, 0, 1, 0, 1, 0, 1, 0],
@@ -61,7 +61,7 @@ class CheckersWindow:
             # --- Game logic should go here
 
             # Calling for chessboard info
-            img = c_d.find_chessboard(frame)
+            img = c_d.find_chessboard(cv2.flip(frame,1))
 
             # Checking if the move was valid
 

@@ -16,7 +16,7 @@ def find_chessboard(image):
 
     gray = cv2.cvtColor(imageBlack, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
+    thresh = cv2.threshold(blurred, 80, 255, cv2.THRESH_BINARY_INV)[1]
     kernel = np.ones((5, 5), np.uint8)
     thresh = cv2.erode(thresh, kernel, iterations=1)
     #cv2.imshow("1thresh", thresh)
@@ -30,7 +30,7 @@ def find_chessboard(image):
     imageWhite = cv2.bitwise_not(imageWhite)
     gray = cv2.cvtColor(imageWhite, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    thresh = cv2.threshold(blurred, 80, 255, cv2.THRESH_BINARY_INV)[1]
+    thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
     kernel = np.ones((5, 5), np.uint8)
     thresh = cv2.erode(thresh, kernel, iterations=1)
     #cv2.imshow("2thresh", thresh)
