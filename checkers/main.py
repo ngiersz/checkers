@@ -31,7 +31,7 @@ def findCheesboard(image):
 
     gray = cv2.cvtColor(imageBlack, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
+    thresh = cv2.threshold(blurred, 80, 255, cv2.THRESH_BINARY_INV)[1]
     kernel = np.ones((5, 5), np.uint8)
     thresh = cv2.erode(thresh, kernel, iterations=1)
     cv2.imshow("1thresh", thresh)
@@ -45,7 +45,7 @@ def findCheesboard(image):
     imageWhite = cv2.bitwise_not(imageWhite)
     gray = cv2.cvtColor(imageWhite, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    thresh = cv2.threshold(blurred, 80, 255, cv2.THRESH_BINARY_INV)[1]
+    thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
     kernel = np.ones((5, 5), np.uint8)
     thresh = cv2.erode(thresh, kernel, iterations=1)
     cv2.imshow("2thresh", thresh)
@@ -91,20 +91,12 @@ def findCheesboard(image):
 
 
 def main():
-    image = cv2.imread("hm.png")
-    cam = cv2.VideoCapture(1)
+    cam = cv2.VideoCapture(0)
     cam.set(3, 640)
     cam.set(4, 480)
     cam.set(5, 75)
     show_webcam(cam)
-    # imageResult = findCheesboard(image)
-    # cv2.imshow("Result", imageResult)
-    # cv2.waitKey(0)
-    # # while True:
-    # while True:
-    #     image = show_webcam(cam, mirror=False)
-    #     cv2.imwrite("hm.png", image)
-    # imageResult = findCheesboard(image)
+
 
 
 
