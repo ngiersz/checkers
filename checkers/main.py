@@ -31,7 +31,7 @@ def show_webcam(cam, mirror=False):
     # return img
 
 
-def findCheesboard(image):
+def findFields(image):
     imageBlack = image.copy()
     imageWhite = image.copy()
 
@@ -64,6 +64,8 @@ def findCheesboard(image):
     cnts = imutils.grab_contours(cnts2) + cnts
     cnts.reverse()
     print(len(cnts))
+    if len(cnts) != 64:
+        return None
 
     # cntsSorted = []
     # for i in range(len(cnts)-1):
@@ -138,18 +140,18 @@ def main():
         img = cv2.imdecode(img_arr, -1)
 
         try:
-            img = searchChessboard(img)
-            img = findCheesboard(img)
-            cv2.imshow("okienko", img)
+            img = findChessboard(img)
+            img = findFields(img)
+            if img is None:
+                continue
+            cv2.imshow("Wykryte pola", img)
         except:
             continue
-
         if cv2.waitKey(1) == 27:
             break
 
 
-
-def searchChessboard(image):
+def findChessboard(image):
     ULx = None
     ULy = None
     URx = None
@@ -159,180 +161,83 @@ def searchChessboard(image):
     DRx = None
     DRy = None
 
-    MIN_MATCH_COUNT = 10
 
-    # Initiate SIFT detector
-    sift = cv2.xfeatures2d.SIFT_create()
 
-    img1 = cv2.imread('ar1.png', 0)  # queryImage
+    markersNames = ('DOWN_LEFT.png', 'UP_RIGHT.png', 'UP_LEFT.png', 'DOWN_RIGHT.png')
+
+    # id is one of the corners of detected image that we need
     img2 = image  # trainImage
+    for id, markerName in enumerate(markersNames):
+        img1 = cv2.imread(markerName, 0)  # queryImage
 
-    # find the keypoints and descriptors with SIFT
-    kp1, des1 = sift.detectAndCompute(img1, None)
-    kp2, des2 = sift.detectAndCompute(img2, None)
+        MIN_MATCH_COUNT = 10
 
-    FLANN_INDEX_KDTREE = 0
-    index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
-    search_params = dict(checks=50)
+        # Initiate SIFT detector
+        sift = cv2.xfeatures2d.SIFT_create()
 
-    flann = cv2.FlannBasedMatcher(index_params, search_params)
+        # find the keypoints and descriptors with SIFT
+        kp1, des1 = sift.detectAndCompute(img1, None)
+        kp2, des2 = sift.detectAndCompute(img2, None)
 
-    matches = flann.knnMatch(des1, des2, k=2)
+        FLANN_INDEX_KDTREE = 0
+        index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+        search_params = dict(checks=50)
 
-    # store all the good matches as per Lowe's ratio test.
-    good = []
-    for m, n in matches:
-        if m.distance < 0.7 * n.distance:
-            good.append(m)
+        flann = cv2.FlannBasedMatcher(index_params, search_params)
 
-    if len(good) > MIN_MATCH_COUNT:
-        src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
-        dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
+        matches = flann.knnMatch(des1, des2, k=2)
 
-        M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-        matchesMask = mask.ravel().tolist()
+        # store all the good matches as per Lowe's ratio test.
+        good = []
+        for m, n in matches:
+            if m.distance < 0.7 * n.distance:
+                good.append(m)
 
-        h, w = img1.shape
-        pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
-        dst = cv2.perspectiveTransform(pts, M)
+        if len(good) > MIN_MATCH_COUNT:
+            src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
+            dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
 
-        # img2 = cv2.polylines(img2, [np.int32(dst)], True, (255, 0, 0), 3, cv2.LINE_AA)
-        ULx = [np.int32(dst)[2]][0][0][0]
-        ULy = [np.int32(dst)[2]][0][0][1]
-        # img2 = cv2.circle(img2, (ULx,ULy), 5, (255, 0 ,0), 10)
-    else:
-        # print("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
-        pass
-        matchesMask = None
+            M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+            matchesMask = mask.ravel().tolist()
 
-    # draw_params = dict(matchColor=(0, 255, 0),  # draw matches in green color
-    #                    singlePointColor=None,
-    #                    matchesMask=matchesMask,  # draw only inliers
-    #                    flags=2)
-    #
-    # img3 = cv2.drawMatches(img1, kp1, img2, kp2, good, None, **draw_params)
+            h, w = img1.shape
+            pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
+            dst = cv2.perspectiveTransform(pts, M)
 
-    img1 = cv2.imread('ar2.png', 0)  # queryImage
+            # img2 = cv2.polylines(img2, [np.int32(dst)], True, (255, 0, 0), 3, cv2.LINE_AA)
 
-    # find the keypoints and descriptors with SIFT
-    kp1, des1 = sift.detectAndCompute(img1, None)
-    kp2, des2 = sift.detectAndCompute(img2, None)
+            if id == 0:
+                DRx = [np.int32(dst)[id]][0][0][0]
+                DRy = [np.int32(dst)[id]][0][0][1]
+            elif id == 1:
+                URx = [np.int32(dst)[id]][0][0][0]
+                URy = [np.int32(dst)[id]][0][0][1]
+            elif id == 2:
+                ULx = [np.int32(dst)[id]][0][0][0]
+                ULy = [np.int32(dst)[id]][0][0][1]
+            elif id == 3:
+                DLx = [np.int32(dst)[id]][0][0][0]
+                DLy = [np.int32(dst)[id]][0][0][1]
 
-    FLANN_INDEX_KDTREE = 0
-    index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
-    search_params = dict(checks=50)
+        else:
+            # print("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
+            pass
+            matchesMask = None
 
-    flann = cv2.FlannBasedMatcher(index_params, search_params)
+        # draw_params = dict(matchColor=(0, 255, 0),  # draw matches in green color
+        #                    singlePointColor=None,
+        #                    matchesMask=matchesMask,  # draw only inliers
+        #                    flags=2)
+        #
+        # img3 = cv2.drawMatches(img1, kp1, img2, kp2, good, None, **draw_params)
 
-    matches = flann.knnMatch(des1, des2, k=2)
+    # result = image[URy:DRy, ULx:URx]
 
-    # store all the good matches as per Lowe's ratio test.
-    good = []
-    for m, n in matches:
-        if m.distance < 0.7 * n.distance:
-            good.append(m)
-
-    if len(good) > MIN_MATCH_COUNT:
-        src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
-        dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-
-        M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-
-        h, w = img1.shape
-        pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
-        dst = cv2.perspectiveTransform(pts, M)
-
-        # img2 = cv2.polylines(img2, [np.int32(dst)], True, (255, 0, 0), 3, cv2.LINE_AA)
-        URx = [np.int32(dst)[1]][0][0][0]
-        URy = [np.int32(dst)[1]][0][0][1]
-        # img2 = cv2.circle(img2, (URx, URy), 5, (255, 0, 0), 10)
-    else:
-        pass
-        # print("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
-
-
-    img1 = cv2.imread('ar3.png', 0)  # queryImage
-
-    # find the keypoints and descriptors with SIFT
-    kp1, des1 = sift.detectAndCompute(img1, None)
-    kp2, des2 = sift.detectAndCompute(img2, None)
-
-    FLANN_INDEX_KDTREE = 0
-    index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
-    search_params = dict(checks=50)
-
-    flann = cv2.FlannBasedMatcher(index_params, search_params)
-
-    matches = flann.knnMatch(des1, des2, k=2)
-
-    # store all the good matches as per Lowe's ratio test.
-    good = []
-    for m, n in matches:
-        if m.distance < 0.7 * n.distance:
-            good.append(m)
-
-    if len(good) > MIN_MATCH_COUNT:
-        src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
-        dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-
-        M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-
-        h, w = img1.shape
-        pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
-        dst = cv2.perspectiveTransform(pts, M)
-
-        # img2 = cv2.polylines(img2, [np.int32(dst)], True, (255, 0, 0), 3, cv2.LINE_AA)
-        DLx = [np.int32(dst)[3]][0][0][0]
-        DLy = [np.int32(dst)[3]][0][0][1]
-        # img2 = cv2.circle(img2, (DLx, DLy), 5, (255, 0, 0), 10)
-    else:
-        pass
-        # print("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
-
-
-    img1 = cv2.imread('ar4.png', 0)  # queryImage
-
-    # find the keypoints and descriptors with SIFT
-    kp1, des1 = sift.detectAndCompute(img1, None)
-    kp2, des2 = sift.detectAndCompute(img2, None)
-
-    FLANN_INDEX_KDTREE = 0
-    index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
-    search_params = dict(checks=50)
-
-    flann = cv2.FlannBasedMatcher(index_params, search_params)
-
-    matches = flann.knnMatch(des1, des2, k=2)
-
-    # store all the good matches as per Lowe's ratio test.
-    good = []
-    for m, n in matches:
-        if m.distance < 0.7 * n.distance:
-            good.append(m)
-
-    if len(good) > MIN_MATCH_COUNT:
-        src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
-        dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
-
-        M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-
-        h, w = img1.shape
-        pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
-        dst = cv2.perspectiveTransform(pts, M)
-
-        DRx = [np.int32(dst)[0]][0][0][0]
-        DRy = [np.int32(dst)[0]][0][0][1]
-        # img2 = cv2.circle(img2, w, 5, (255, 0, 0), 10)
-    else:
-        pass
-        # print("Not enough matches are found - %d/%d" % (len(good), MIN_MATCH_COUNT))
-
-    # plt.imshow(img2, 'gray'), plt.show()
-
-    # result = four_point_transform(image, [(ULx, ULy), (URx, URy), (DLx, DLy), (DRx, DRy)])
-
-    # image[ULy:DLy, ULx:URx]
-    return image[ULy:DLy, ULx:URx]
+    pts1 = np.float32([[ULx, ULy], [URx, URy], [DLx, DLy], [DRx, DRy]])
+    pts2 = np.float32([[0, 0], [500, 0], [0, 500], [500, 500]])
+    M = cv2.getPerspectiveTransform(pts1, pts2)
+    result = cv2.warpPerspective(image, M, (500, 500))
+    return result
 
 
 def four_point_transform(image, pts):
