@@ -331,5 +331,5 @@ def main():
     # cv2.imshow("Wykryte pola", img)
     # cv2.waitKey(0)
 
-if __name__ == '__main__':
-        main()
+# if __name__ == '__main__':
+#     main()

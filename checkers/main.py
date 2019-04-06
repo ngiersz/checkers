@@ -4,7 +4,7 @@ import imutils
 import numpy as np
 from Field import Field
 import requests
-from sklearn.cluster import DBSCAN
+from matplotlib import pyplot as plt
 
 STANDARD_DEVIATION = 20
 def detectShape(c):
@@ -294,5 +294,28 @@ def main():
     # cv2.imshow("Wykryte pola", img)
     # cv2.waitKey(0)
 
+# Function to calculate proportion of a certain channel
+def colour_frac(color):
+    return np.sum(color)/np.sum(intensity)
+
 if __name__ == '__main__':
-        main()
+    main()
+    # img = cv2.imread("images/blue.png", 1)
+    # cv2.imshow("obrazek", img)
+    #
+    # # Extract each colour channel
+    # blue, green, red = img[:, :, 0], img[:, :, 1], img[:, :, 2]
+    # # Total red+green+blue intensity
+    # intensity = img.sum(axis=2)
+    # # Calculate the proportion of each colour
+    # red_fraction = colour_frac(red)
+    # green_fraction = colour_frac(green)
+    # blue_fraction = colour_frac(blue)
+    #
+    # sum_colour_fraction = red_fraction + green_fraction + blue_fraction
+    # print('Red fraction: {}'.format(red_fraction))
+    # print('\nGreen fraction: {}'.format(green_fraction))
+    # print('\nBlue fraction: {}'.format(blue_fraction))
+    # print('\nRGB sum: {}'.format(sum_colour_fraction))
+    # print(red.shape == green.shape == blue.shape)
+    # cv2.waitKey(0)
