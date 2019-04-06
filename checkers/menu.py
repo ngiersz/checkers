@@ -42,7 +42,6 @@ class MenuWindow:
         self._selectedIT = 0
         self._selected = self._to_select_buttons[0]
 
-
     def run(self):
         while not self._done:
             self._dt = self._clock.tick(30) / 1000
