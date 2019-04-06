@@ -55,6 +55,7 @@ class CheckersWindow:
 
             # --- reading frame from camera
             ret, frame = self._camera.read()
+            frame = cv2.imread('black.jpg')
             frame = cv2.resize(frame, (ccw.CAMERA_W, ccw.CAMERA_H))
             frame = cv2.cvtColor(frame, 3)
 

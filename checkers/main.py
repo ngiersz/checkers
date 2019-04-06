@@ -6,7 +6,9 @@ import time
 import numpy as np
 from matplotlib import pyplot as plt
 import requests
+import checkers.menu as menu
 
+"""
 
 def show_webcam(cam, mirror=False):
 
@@ -372,6 +374,6 @@ def four_point_transform(image, pts):
 
     # return the warped image
     return warped
-
+"""
 if __name__ == '__main__':
-        main()
+    menu.MenuWindow().run()
