@@ -4,15 +4,7 @@ import imutils
 import numpy as np
 from Field import Field
 import requests
-from matplotlib import pyplot as plt
-import checkers.menu as menu
-
-
-
-def show_webcam(cam, mirror=False):
-
-    while True:
-        ret_val, img = cam.read()
+from sklearn.cluster import DBSCAN
 
 STANDARD_DEVIATION = 20
 def detectShape(c):
@@ -107,8 +99,8 @@ def findPawns(image, threshold):
     # cv2.imshow("pawnsThreshBeforeErode"+str(threshold), thresh)
     # kernel = np.ones((5, 5), np.uint8)
     # thresh = cv2.erode(thresh, kernel, iterations=2)
-    # cv2.imshow("pawnsThresh" + str(threshold), thresh)
-
+    cv2.imshow("pawnsThresh" + str(threshold), thresh)
+    cv2.waitKey(0)
     # find contours in the thresholded imageBlack and initialize the
     # shape detector
     cnts1 = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL,
@@ -159,7 +151,7 @@ def checkIfPawnOnField(fields, pawnsBlue, pawnsRed, image):
                 result[id] = Field.BLACK_FIELD_RED_PAWN
                 # print("red")
 
-    print(result)
+    # print(result)
 
 
 def findChessboard(image):
@@ -234,20 +226,25 @@ def findChessboard(image):
 def main():
     url = "http://192.168.1.66:8080/shot.jpg"
     while True:
-            img_resp = requests.get(url)
-            img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
-            img = cv2.imdecode(img_arr, -1)
+        try:
+            bluePawns = []
+            redPawns = []
+            for i in range(5):
+                img_resp = requests.get(url)
+                img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
+                img = cv2.imdecode(img_arr, -1)
 
-            try:
                 img = findChessboard(img)
                 # Converts images from BGR to HSV
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
                 # Find blue pawns
-                lowerBlue = np.array([110, 100, 50], dtype='uint8')
-                upperBlue = np.array([130, 255, 255], dtype='uint8')
+                lowerBlue = np.array([80, 50, 50], dtype='uint8')
+                upperBlue = np.array([110, 255, 255], dtype='uint8')
                 mask = cv2.inRange(img, lowerBlue, upperBlue)
                 res = cv2.bitwise_and(img, img, mask=mask)
-                bluePawns = findPawns(image=res, threshold=50)
+
+                # bluePawns = findPawns(image=res, threshold=71)
+                bluePawns = bluePawns + findPawns(image=res, threshold=71)
 
 
                 # Find red pawns
@@ -259,19 +256,51 @@ def main():
                 mask2 = cv2.inRange(img, lowerRed2, upperRed2)
 
                 res = cv2.bitwise_or(cv2.bitwise_and(img, img, mask=mask1), cv2.bitwise_and(img, img, mask=mask2))
-                redPawns = findPawns(image=res, threshold=130)
+                redPawns = redPawns + findPawns(image=res, threshold=100)
+                print(bluePawns)
+                cv2.waitKey(0)
 
-                img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
-                fields = findFields(img)
-                checkIfPawnOnField(fields, bluePawns, redPawns, img)
-                cv2.imshow("Wykryte pola", img)
-                if img is None:
-                    continue
-                # cv2.imshow("Wykryte pola", img)
-            except:
+            # blue
+            clustering = DBSCAN(eps=5, min_samples=3).fit(bluePawns)
+            groupsKeys = []
+            for label in clustering.labels_:
+                if label not in groupsKeys:
+                    groupsKeys.append(label)
+
+            groupedPoints = {new_list: [] for new_list in groupsKeys}
+            for id, label in enumerate(clustering.labels_):
+                groupedPoints[label].append(bluePawns[id])
+
+            bluePoints = []
+            for group in groupedPoints.values():
+                bluePoints.append(group[0])
+
+            # red
+            clustering = DBSCAN(eps=5, min_samples=3).fit(redPawns)
+            groupsKeys = []
+            for label in clustering.labels_:
+                if label not in groupsKeys:
+                    groupsKeys.append(label)
+
+            groupedPoints = {new_list: [] for new_list in groupsKeys}
+            for id, label in enumerate(clustering.labels_):
+                groupedPoints[label].append(redPawns[id])
+
+            redPoints = []
+            for group in groupedPoints.values():
+                redPoints.append(group[0])
+
+            img = cv2.cvtColor(img, cv2.COLOR_HSV2BGR)
+            fields = findFields(img)
+            checkIfPawnOnField(fields, bluePoints, redPoints, img)
+            cv2.imshow("Wykryte pola", img)
+            if img is None:
                 continue
-            if cv2.waitKey(1) == 27:
-                break
+            # cv2.imshow("Wykryte pola", img)
+        except:
+                continue
+        if cv2.waitKey(1) == 27:
+            break
 
     # img2 = cv2.imread("images/chessboardARUCO_2.png", 1)
     # img = findChessboard(img2)
@@ -302,9 +331,5 @@ def main():
     # cv2.imshow("Wykryte pola", img)
     # cv2.waitKey(0)
 
-# Function to calculate proportion of a certain channel
-def colour_frac(color):
-    return np.sum(color)/np.sum(intensity)
-
-if __name__ == '__main__':
-    menu.MenuWindow().run()
+# if __name__ == '__main__':
+#     main()
