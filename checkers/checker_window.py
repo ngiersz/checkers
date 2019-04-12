@@ -30,8 +30,6 @@ class CheckersWindow:
         self.init_textures()
 
 
-
-
     def draw_window(self):
         """
         Function with main loop for window with checkers board and view

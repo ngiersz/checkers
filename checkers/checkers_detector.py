@@ -1,5 +1,4 @@
 import cv2
-import checkers.ShapeDetector as ShapeDetector
 import imutils
 import numpy as np
 
@@ -50,7 +49,7 @@ def find_chessboard(image):
     #     else:
     #         cntsSorted.append(cnts[32 + int(i/2)])
 
-    sd = ShapeDetector.ShapeDetector()
+    #sd = ShapeDetector.ShapeDetector()
 
     # cntsSorted[0][1][0][1] = 99
     # print(cntsSorted[0])
@@ -58,10 +57,10 @@ def find_chessboard(image):
     # g = image[cntsSorted[0][0][0][1]:cntsSorted[0][2][0][1],cntsSorted[0][0][0][0]:cntsSorted[0][2][0][0]]
     # cv2.imshow("pierwsze pole", g)
     # loop over the contours
-    for c in cnts:
-        shape = sd.detect(c)
-        if shape == 'square':
-            cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
+    # for c in cnts:
+    #     shape = sd.detect(c)
+    #     if shape == 'square':
+    #         cv2.drawContours(image, [c], -1, (0, 255, 0), 2)
 
         # compute the center of the contour, then detect the name of the
         # shape using only the contour
