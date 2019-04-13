@@ -1,133 +1,176 @@
-import pygame
-import pygame.gfxdraw
+import pygame as pg
+import datetime
 import cv2
 import numpy as np
 import checkers.checkers_detector as c_d
 import checkers.configs.config_checkers_window as ccw
 import checkers.configs.config_colors as ccc
+import json
 
 
 class CheckersWindow:
+    """
+    Class that analyzes state on board, shows it and save data of game if user wants that
+    Using frames from camera(in our project we use streaming phone camera via wifi)
+    analyze them(finds chessboard with pawns) then checks if move was legal and if it was
+    it shows it.
+    There is also possibility to save the game to file
+    """
 
     def __init__(self):
         self._camera = cv2.VideoCapture(0)
-        self._tab = [[0, 1, 0, 1, 0, 1, 0, 1],
-                     [1, 0, 1, 0, 1, 0, 1, 0],
-                     [0, 1, 0, 1, 0, 1, 0, 1],
-                     [1, 0, 1, 0, 1, 0, 1, 0],
-                     [0, 1, 0, 1, 0, 1, 0, 1],
-                     [1, 0, 1, 0, 1, 0, 1, 0],
-                     [0, 1, 0, 1, 0, 1, 0, 1],
-                     [1, 0, 1, 0, 1, 0, 1, 0]]
-        self._screen = pygame.display.set_mode(ccw.SIZE, pygame.FULLSCREEN)
+
+        self._state = [[0, 1, 0, 1, 0, 1, 0, 1],
+                       [1, 0, 1, 0, 1, 0, 1, 0],
+                       [0, 1, 0, 1, 0, 1, 0, 1],
+                       [1, 0, 1, 0, 1, 0, 1, 0],
+                       [0, 1, 0, 1, 0, 1, 0, 1],
+                       [1, 0, 1, 0, 1, 0, 1, 0],
+                       [0, 1, 0, 1, 0, 1, 0, 1],
+                       [1, 0, 1, 0, 1, 0, 1, 0]]
+
+        self._game = [self._state]
+
+        self._screen = pg.display.set_mode(ccw.SIZE, pg.FULLSCREEN)
         self._done = False
-        pygame.display.set_caption("checkers")
+        self._save = False
         self._black_field = ccc.BLACK
         self._white_field = ccc.WHITE
         self._white_pawn = ccc.WHITE
         self._black_pawn = ccc.BLACK
+        self._clock = pg.time.Clock()
 
+        self._dt = self._clock.tick(30) / 1000
+        self._frame = cv2.imread('images/chessboard.png')
+        self._img = self._frame
+
+        pg.display.set_caption("checkers")
         self.init_textures()
 
+    def run(self):
+        """
+        Main loop
+        returns: True
+        """
+        while not self._done:
+            self._dt = self._clock.tick(30) / 1000
+            self.handle_events()
+            self.get_camera_frame()
+            self.run_logic()
+            self.draw()
 
-    def draw_window(self):
+    def handle_events(self):
+        """
+        Deals with events:
+            ESC = exit
+        returns: True
+        """
+        for event in pg.event.get():
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_ESCAPE:
+                    self._done = True
+                    print("esc")
+            elif event.type == pg.QUIT:
+                self._done = True
+
+    def get_camera_frame(self):
+        """
+        updates _frame from phone camera
+        #TODO describes how to connect camera with app
+        returns: True
+        """
+        # ret, self._frame = self._camera.read()
+        self._frame = cv2.resize(self._frame, (ccw.CAMERA_W, ccw.CAMERA_H))
+        self._frame = cv2.cvtColor(self._frame, 3)
+
+    def run_logic(self):
+        """
+        Checking if move was correct and saving state of the game
+        returns: True
+        """
+
+        self._img = c_d.find_chessboard(cv2.flip(self._frame, 1))
+        if self._save:
+            self._game.append(self._state)
+
+        self._clock.tick(60)
+
+    def save_game(self):
+        """
+        Saves actual game to file with name: game_<date>
+        date has format Year-month-day_Hour-Min-Sec
+        returns: True
+        """
+
+        file_name = 'game_{}'.format(datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+        with open(file_name, 'w') as outfile:
+            json.dump(self._game, outfile)
+
+    def draw(self):
         """
         Function with main loop for window with checkers board and view
         from the camera
         returns: True
         """
 
-        # Used to manage how fast the screen updates
-        clock = pygame.time.Clock()
+        self._screen.fill(ccc.BEIGE)
 
-        # -------- Main Program Loop -----------
-        while not self._done:
-            # --- Main event loop
-            for event in pygame.event.get():
+        # Drawing chessboard
+        r_counter = 0
+        for row in self._state:
+            f_counter = 0
+            for field in row:
+                if field == 0:
+                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+                elif field == 1:
+                    self._screen.blit(self._white_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+                elif field == 2:
+                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
 
-                if event.type == pygame.KEYDOWN:
-                    self._done = True
+                    pg.draw.ellipse(self._screen, ccc.WHITE, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                              ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                              ccw.PAWN_SIZE, ccw.PAWN_SIZE])
+                elif field == 3:
+                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
 
-                elif event.type == pygame.QUIT:
-                    self._done = True
+                    pg.draw.ellipse(self._screen, ccc.BLACK, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                              ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                              ccw.PAWN_SIZE, ccw.PAWN_SIZE])
+                f_counter = f_counter + 1
+            r_counter = r_counter + 1
 
-            # --- reading frame from camera
-            ret, frame = self._camera.read()
-            frame = cv2.imread('black.jpg')
-            frame = cv2.resize(frame, (ccw.CAMERA_W, ccw.CAMERA_H))
-            frame = cv2.cvtColor(frame, 3)
+        # --- drawing frame on the window
+        img = np.rot90(self._img)
+        img = pg.surfarray.make_surface(img)
+        self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))
 
-            # --- Game logic should go here
+        # --- Drawing code should go here
 
-            # Calling for chessboard info
-            img = c_d.find_chessboard(cv2.flip(frame,1))
+        pg.display.flip()
+        pg.display.update()
 
-            # Checking if the move was valid
-
-            # --- Screen-clearing code goes here
-            self._screen.fill(ccc.BEIGE)
-
-            # Drawing chessboard
-            r_counter = 0
-            for row in self._tab:
-                f_counter = 0
-                for field in row:
-                    if field == 0:
-                        self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                              ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                              ccw.RECT_SIZE, ccw.RECT_SIZE])
-                    elif field == 1:
-                        self._screen.blit(self._white_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                              ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                              ccw.RECT_SIZE, ccw.RECT_SIZE])
-                    elif field == 2:
-                        self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                              ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                              ccw.RECT_SIZE, ccw.RECT_SIZE])
-
-                        # self._screen.blit(self._white_pawn, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                        #                                       ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                        #                                       ccw.RECT_SIZE, ccw.RECT_SIZE])
-
-                        pygame.draw.ellipse(self._screen, ccc.WHITE, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                                      ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                                      ccw.PAWN_SIZE, ccw.PAWN_SIZE])
-                    elif field == 3:
-                        self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                              ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                              ccw.RECT_SIZE, ccw.RECT_SIZE])
-
-                        pygame.draw.ellipse(self._screen, ccc.BLACK, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                                      ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                                      ccw.PAWN_SIZE, ccw.PAWN_SIZE])
-                    f_counter = f_counter+1
-                r_counter = r_counter+1
-
-            # --- drawing frame on the window
-            img = np.rot90(img)
-            img = pygame.surfarray.make_surface(img)
-            self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))
-
-            # --- Drawing code should go here
-
-            pygame.display.flip()
-            pygame.display.update()
-
-            # --- Limit to 60 frames per second
-            clock.tick(60)
+        # --- Limit to 60 frames per second
+        self._clock.tick(60)
 
         # Close the window and quit.
 
     def init_textures(self):
         self._black_field = cv2.resize(ccw.BLACK_FIELD, (ccw.RECT_SIZE, ccw.RECT_SIZE))
-        self._black_field = pygame.surfarray.make_surface(self._black_field)
+        self._black_field = pg.surfarray.make_surface(self._black_field)
         self._white_field = cv2.resize(ccw.WHITE_FIELD, (ccw.RECT_SIZE, ccw.RECT_SIZE))
-        self._white_field = pygame.surfarray.make_surface(self._white_field)
+        self._white_field = pg.surfarray.make_surface(self._white_field)
         self._white_pawn = cv2.resize(ccw.WHITE_PAWN, (ccw.RECT_SIZE, ccw.RECT_SIZE))
-        self._white_pawn = pygame.surfarray.make_surface(self._white_pawn)
+        self._white_pawn = pg.surfarray.make_surface(self._white_pawn)
         self._black_pawn = cv2.resize(ccw.BLACK_PAWN, (ccw.RECT_SIZE, ccw.RECT_SIZE))
-        self._black_pawn = pygame.surfarray.make_surface(self._black_pawn)
-
+        self._black_pawn = pg.surfarray.make_surface(self._black_pawn)
 
     def main(self):
-        self.draw_window()
+        self.run()

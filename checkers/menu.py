@@ -1,9 +1,11 @@
 import os
 import pygame as pg
 pg.init()
+
 import checkers.configs.config_colors as ccc
-from checkers.checker_window import CheckersWindow
 import checkers.configs.config_menu as ccm
+from checkers.checker_window import CheckersWindow
+from checkers.archive_window import ArchiveWindow
 from checkers.button import Button
 import checkers.configs.config_buttons as cb
 from checkers.utils import text_format
@@ -14,7 +16,7 @@ class MenuWindow:
     def __init__(self):
 
         os.environ['SDL_VIDEO_CENTERED'] = '1'  # Center the Game Application
-        self._screen = pg.display.set_mode(ccm.MENU_SIZE)  # Game Resolution
+        self._screen = pg.display.set_mode(ccm.MENU_SIZE, pg.FULLSCREEN)  # Game Resolution
         self._clock = pg.time.Clock()  # Game Frame rate
         self._done = False
         self._all_sprites = pg.sprite.Group()
@@ -90,6 +92,7 @@ class MenuWindow:
         CheckersWindow().main()
 
     def archive_window(self):
+        ArchiveWindow().main()
         print("archive")
 
     def quit_game(self):
