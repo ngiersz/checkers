@@ -3,11 +3,12 @@ import datetime
 import json
 import cv2
 import numpy as np
-import checkers.checkers_detector as c_d
+import threading
 import checkers.configs.config_checkers_window as ccw
 import checkers.configs.config_colors as ccc
 import checkers.configs.config_buttons as cb
 from checkers.button import Button
+from checkers.detector import start
 
 
 class CheckersWindow:
@@ -21,7 +22,6 @@ class CheckersWindow:
 
     def __init__(self):
         self._camera = cv2.VideoCapture(0)
-
         self._state = [[0, 1, 0, 1, 0, 1, 0, 1],
                        [1, 0, 1, 0, 1, 0, 1, 0],
                        [0, 1, 0, 1, 0, 1, 0, 1],
@@ -47,7 +47,7 @@ class CheckersWindow:
         self._clock = pg.time.Clock()
 
         self._dt = self._clock.tick(30) / 1000
-        self._frame = cv2.imread('images/chessboard.png')
+        self._frame = cv2.imread('images/chessboardPawns.png')
         self._img = self._frame
 
         pg.display.set_caption("checkers")
@@ -64,11 +64,15 @@ class CheckersWindow:
         Main loop
         returns: True
         """
+        # run_logic_thread = threading.Thread(target=self.run_logic())
+        # run_logic_thread.setDaemon(True)
+        # run_logic_thread.start()
         while not self._done:
+            print("Pętlimy")
             self._dt = self._clock.tick(30) / 1000
             self.handle_events()
-            self.get_camera_frame()
             self.run_logic()
+            self.get_camera_frame()
             self.draw()
 
     def handle_events(self):
@@ -81,6 +85,7 @@ class CheckersWindow:
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
                     if self.changing_name:
+                        self.changing_name = False
                         self.name_to_set = ccw.NO_NAME
                     else:
                         self._done = True
@@ -107,20 +112,27 @@ class CheckersWindow:
         returns: True
         """
         # ret, self._frame = self._camera.read()
-        self._frame = cv2.resize(self._frame, (ccw.CAMERA_W, ccw.CAMERA_H))
-        self._frame = cv2.cvtColor(self._frame, 3)
+
+        #self._frame = cv2.resize(self._frame, (ccw.CAMERA_W, ccw.CAMERA_H))
+        #self._frame = cv2.cvtColor(self._frame, 3)
 
     def run_logic(self):
         """
         Checking if move was correct and saving state of the game
         returns: True
         """
+        print("Przerabiamy")
+        self._img, helo = start(self._frame, n=5)
+        self._img = cv2.flip(self._img, 1)
+        # cv2.imshow("TESTOWANYASDASD", self._img)
+        # cv2.waitKey(0)
+        print("Przerobilismy")
 
-        self._img = c_d.find_chessboard(cv2.flip(self._frame, 1))
         if self._save:
             self._game.append(self._state)
-
         self._clock.tick(60)
+        #while not self._done:
+
 
     def save_game(self):
         """
@@ -176,6 +188,7 @@ class CheckersWindow:
 
         # --- drawing frame on the window
         img = np.rot90(self._img)
+        #img = self._img
         img = pg.surfarray.make_surface(img)
         self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))
 
