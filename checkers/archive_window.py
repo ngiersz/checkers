@@ -1,14 +1,10 @@
 import pygame as pg
-import datetime
 import os
 import cv2
-import numpy as np
-import checkers.checkers_detector as c_d
-import checkers.configs.config_archive_window as caw
-import checkers.configs.config_colors as ccc
-import checkers.configs.config_buttons as cb
 import glob
 import json
+import checkers.configs.config_archive_window as caw
+import checkers.configs.config_colors as ccc
 
 from checkers.text_field import TextField
 from checkers.button import Button

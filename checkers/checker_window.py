@@ -1,11 +1,13 @@
 import pygame as pg
 import datetime
+import json
 import cv2
 import numpy as np
 import checkers.checkers_detector as c_d
 import checkers.configs.config_checkers_window as ccw
 import checkers.configs.config_colors as ccc
-import json
+import checkers.configs.config_buttons as cb
+from checkers.button import Button
 
 
 class CheckersWindow:
@@ -32,8 +34,12 @@ class CheckersWindow:
         self._game = [self._state]
 
         self._screen = pg.display.set_mode(ccw.SIZE, pg.FULLSCREEN)
+        self.changing_name = False
+        self.name_to_set = ccw.NO_NAME
         self._done = False
         self._save = False
+        self._all_sprites = pg.sprite.Group()
+
         self._black_field = ccc.BLACK
         self._white_field = ccc.WHITE
         self._white_pawn = ccc.WHITE
@@ -46,6 +52,12 @@ class CheckersWindow:
 
         pg.display.set_caption("checkers")
         self.init_textures()
+
+        self.change_name_field = Button(ccw.SELECT_NAME_OFFSET_X,
+                                        ccw.SELECT_NAME_OFFSET_Y,
+                                        ccw.SELECT_NAME_WIDTH, ccw.SELECT_NAME_HEIGHT, self.change_name, ccw.FONT,
+                                        self.name_to_set, (255, 0, 0))
+        self._all_sprites.add(self.change_name_field)
 
     def run(self):
         """
@@ -68,10 +80,25 @@ class CheckersWindow:
         for event in pg.event.get():
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE:
-                    self._done = True
-                    print("esc")
+                    if self.changing_name:
+                        self.name_to_set = ccw.NO_NAME
+                    else:
+                        self._done = True
+                if self.changing_name:
+                    if event.key == pg.K_RETURN:
+                        self.changing_name = False
+                        print("loog FALSE")
+                    elif event.key == pg.K_BACKSPACE:
+                        self.name_to_set = self.name_to_set[:-1]
+                    else:
+                        self.name_to_set += event.unicode
+                        print(self.name_to_set)
+                    self.change_name_field.set_text(self.name_to_set)
+
             elif event.type == pg.QUIT:
                 self._done = True
+            for button in self._all_sprites:
+                button.handle_event(event, False)
 
     def get_camera_frame(self):
         """
@@ -152,6 +179,8 @@ class CheckersWindow:
         img = pg.surfarray.make_surface(img)
         self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))
 
+        self._all_sprites.draw(self._screen)
+
         # --- Drawing code should go here
 
         pg.display.flip()
@@ -161,6 +190,15 @@ class CheckersWindow:
         self._clock.tick(60)
 
         # Close the window and quit.
+    def change_name(self):
+        print("loog hello")
+        if self.changing_name:
+            self.changing_name = False
+            print("loog FALSE")
+        else:
+            self.changing_name = True
+            print("loog TRUE")
+            self.name_to_set = ""
 
     def init_textures(self):
         self._black_field = cv2.resize(ccw.BLACK_FIELD, (ccw.RECT_SIZE, ccw.RECT_SIZE))
