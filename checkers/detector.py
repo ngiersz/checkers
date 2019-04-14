@@ -35,8 +35,10 @@ def get_fields_as_list_of_points_list(image):
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.threshold(blurred, 80, 255, cv2.THRESH_BINARY_INV)[1]
     kernel = np.ones((5, 5), np.uint8)
-    erode = cv2.erode(thresh, kernel, iterations=1)
-    # cv2.imshow("Black fields", thresh)
+    dilate = cv2.dilate(thresh, kernel, iterations=6)
+    # cv2.imshow("Black fields - dilate", dilate)
+    erode = cv2.erode(dilate, kernel, iterations=6)
+    # cv2.imshow("Black fields - erode", erode)
     contours_temp = cv2.findContours(erode.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # contours of black fields
     contours = imutils.grab_contours(contours_temp)
@@ -48,10 +50,11 @@ def get_fields_as_list_of_points_list(image):
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
     kernel = np.ones((5, 5), np.uint8)
-    erode = cv2.erode(thresh, kernel, iterations=1)
-    # cv2.imshow("White fields", thresh)
-    contours_temp = cv2.findContours(erode.copy(), cv2.RETR_EXTERNAL,
-                            cv2.CHAIN_APPROX_SIMPLE)
+    erode = cv2.erode(thresh, kernel, iterations=6)
+    # cv2.imshow("White fields - erode", erode)
+    dilate = cv2.dilate(erode, kernel, iterations=6)
+    # cv2.imshow("Black fields - dilate", dilate)
+    contours_temp = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # add contours of white fields
     contours = imutils.grab_contours(contours_temp) + contours
@@ -93,8 +96,8 @@ def get_fields_as_list_of_points_list(image):
             list_of_points_list = list_of_points_list + list_of_points_in_one_row
             list_of_points_in_one_row =[]
 
-    # for i in range(len(list_of_points_list)):
-    #     cv2.putText(image, str(i),(list_of_points_list[i][0], list_of_points_list[i][1]),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127,127,127),2, cv2.LINE_AA )
+    for i in range(len(list_of_points_list)):
+        cv2.putText(image, str(i),(list_of_points_list[i][0], list_of_points_list[i][1]),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127,127,127),2, cv2.LINE_AA )
 
     return list_of_points_list #, image
 
@@ -107,8 +110,9 @@ def get_list_of_pawns_points(image, threshold):
     # cv2.imshow("pawnsThreshBeforeErode"+str(threshold), thresh)
     kernel = np.ones((5, 5), np.uint8)
     erode = cv2.erode(thresh, kernel, iterations=2)
+    # cv2.imshow("pawnsThresh" + str(threshold) + 'erode', erode)
     dilate = cv2.dilate(erode, kernel, iterations=3)
-    # cv2.imshow("pawnsThresh" + str(threshold), thresh)
+    # cv2.imshow("pawnsThresh" + str(threshold) + 'dilate', dilate)
 
 
     contours_temp = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL,
@@ -272,7 +276,7 @@ def start(camera_image):
                     counter = counter - 1
                     continue
                 counter = counter + 1
-                
+
                 cv2.imshow("Wykryte pola", image)
 
             except:
@@ -284,17 +288,17 @@ def start(camera_image):
             result.append(mode(each_field))
 
 
-        # # show pretty table result :)
-        # for i, x in enumerate(result):
-        #     if i % 8 == 0:
-        #         print("")
-        #     if x == Field.BLACK_FIELD_BLUE_PAWN:
-        #         print(1, end='')
-        #     elif x == Field.BLACK_FIELD_RED_PAWN:
-        #         print(2, end='')
-        #     else:
-        #         print(0, end='')
-
+        # show pretty table result :)
+        for i, x in enumerate(result):
+            if i % 8 == 0:
+                print("")
+            if x == Field.BLACK_FIELD_BLUE_PAWN:
+                print(1, end='')
+            elif x == Field.BLACK_FIELD_RED_PAWN:
+                print(2, end='')
+            else:
+                print(0, end='')
+        print("")
 
     # img2 = cv2.imread("images/chessboardARUCO_2.png", 1)
     # img = findChessboard(img2)
