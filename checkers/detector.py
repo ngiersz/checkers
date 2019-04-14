@@ -3,6 +3,7 @@ import imutils
 import numpy as np
 from Field import Field
 import requests
+from statistics import mode
 
 STANDARD_DEVIATION = 20
 
@@ -228,17 +229,21 @@ def get_chessboard_as_image(image):
 
 
 def start(camera_image):
-    # url = "http://192.168.1.66:8080/shot.jpg"
+    url = "http://192.168.1.66:8080/shot.jpg"
+    n = 5
+    n_results = [[] for i in range(64)]
     while True:
-            # img_resp = requests.get(url)
-            # img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
-            # camera_image = cv2.imdecode(img_arr, -1)
+        counter = 0
+        while counter < n:
+            img_resp = requests.get(url)
+            img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
+            camera_image = cv2.imdecode(img_arr, -1)
 
             try:
                 image = get_chessboard_as_image(camera_image)
                 # Converts images from BGR to HSV
                 image_HSV = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2HSV)
-                
+
                 # Find blue pawns
                 lower_blue = np.array([100, 100, 50], dtype='uint8')
                 upper_blue = np.array([130, 255, 255], dtype='uint8')
@@ -259,15 +264,37 @@ def start(camera_image):
                 # Find fields
                 fields = get_fields_as_list_of_points_list(image)
 
-                get_fields_info_as_list(fields, blue_pawns, red_pawns, image)
-                cv2.imshow("Wykryte pola", image)
+                info_about_each_field = get_fields_info_as_list(fields, blue_pawns, red_pawns, image)
+                for i, x in enumerate(info_about_each_field):
+                    n_results[i].append(x)
 
                 if image is None:
+                    counter = counter - 1
                     continue
+                counter = counter + 1
+                
+                cv2.imshow("Wykryte pola", image)
+
             except:
                 continue
             if cv2.waitKey(1) == 27:
                 break
+        result = []
+        for each_field in n_results:
+            result.append(mode(each_field))
+
+
+        # # show pretty table result :)
+        # for i, x in enumerate(result):
+        #     if i % 8 == 0:
+        #         print("")
+        #     if x == Field.BLACK_FIELD_BLUE_PAWN:
+        #         print(1, end='')
+        #     elif x == Field.BLACK_FIELD_RED_PAWN:
+        #         print(2, end='')
+        #     else:
+        #         print(0, end='')
+
 
     # img2 = cv2.imread("images/chessboardARUCO_2.png", 1)
     # img = findChessboard(img2)
@@ -290,7 +317,7 @@ def start(camera_image):
     # checkIfPawnOnField(fields, bluePawns, redPawns, img)
     # cv2.imshow("Wykryte pola", img)
     # cv2.waitKey(0)
-
+    #
     # pawnsBlue = findPawns(img, 30)
     # pawnsRed = findPawns(img, 60)
     # fields = findFields(img)
