@@ -65,14 +65,11 @@ def get_fields_as_list_of_points_list(image):
         return None
 
     contours_sorted = []
-    values_of_fields = []
     for i in range(len(contours)):
         if i % 2 == 0:
             contours_sorted.append(contours[int(i/2)])
-            values_of_fields.append(Field.BLACK)
         else:
             contours_sorted.append(contours[32 + int(i/2)])
-            values_of_fields.append(Field.WHITE)
 
     list_of_points_list = []
     list_of_points_in_one_row = []
@@ -100,7 +97,7 @@ def get_fields_as_list_of_points_list(image):
     for i in range(len(list_of_points_list)):
         cv2.putText(image, str(i),(list_of_points_list[i][0], list_of_points_list[i][1]),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127,127,127),2, cv2.LINE_AA )
 
-    return list_of_points_list #, image
+    return list_of_points_list #, imageF
 
 
 def get_list_of_pawns_points(image, threshold):
@@ -142,23 +139,24 @@ def get_list_of_pawns_points(image, threshold):
 def get_fields_info_as_list(list_of_fields_points, list_of_blue_pawns_points, list_of_red_pawns_points, image):
     # initialize list with empty black and white fields
     result = []
+    counter = 0
     for i in range(64):
-        if i % 2 == 0:
+        if (i + int(counter/8)) % 2 == 0:
             result.append(Field.BLACK)
         else:
             result.append(Field.WHITE)
-
+        counter += 1
     for id, field in enumerate(list_of_fields_points):
+
         for pawn in list_of_blue_pawns_points:
             if abs(field[0] - pawn[0]) <= 20 and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
                 cv2.circle(image, (field[0], field[1]), 10, (255, 0, 255), 3)
                 result[id] = Field.BLACK_FIELD_BLUE_PAWN
-                # print("blue")
+
         for pawn in list_of_red_pawns_points:
             if abs(field[0] - pawn[0]) <= 20 and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
                 cv2.circle(image, (field[0], field[1]), 10, (255, 255, 0), 3)
                 result[id] = Field.BLACK_FIELD_RED_PAWN
-                # print("red")
 
     return result
 
@@ -169,6 +167,11 @@ def get_chessboard_as_image(image):
     parameters = aruco.DetectorParameters_create()
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
     frame_markers = aruco.drawDetectedMarkers(image.copy(), corners, ids)
+
+    if not corners:
+        print("No corners found")
+        return None
+
     ULx = corners[1][0][2][0]  # x of UP LEFT corner
     ULy = corners[1][0][2][1]  # y of UP LEFT corner
     URx = corners[3][0][3][0]  # x of UP RIGHT corner
@@ -186,19 +189,16 @@ def get_chessboard_as_image(image):
     return result
 
 
-def start(camera_image,n = 5):
-    url = "http://192.168.1.66:8080/shot.jpg"
+def start(camera_image, last_result, n=5):
     n_results = [[] for i in range(64)]
     counter = 0
+    number_of_fails = 0
     while counter < n:
-        #img_resp = requests.get(url)
-        #img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
-        #camera_image = cv2.imdecode(img_arr, -1)
+
+        if number_of_fails > 10:
+            return camera_image, last_result
 
         try:
-            print("Przerabiamy Srodek")
-            print(counter)
-
             image = get_chessboard_as_image(camera_image)
             # Converts images from BGR to HSV
             image_HSV = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2HSV)
@@ -223,7 +223,6 @@ def start(camera_image,n = 5):
 
             # Find fields
             fields = get_fields_as_list_of_points_list(image)
-
             info_about_each_field = get_fields_info_as_list(fields, blue_pawns, red_pawns, image)
             for i, x in enumerate(info_about_each_field):
                 n_results[i].append(x)
@@ -235,23 +234,26 @@ def start(camera_image,n = 5):
 
             #cv2.imshow("Wykryte pola", image)
 
-        except:
+        except Exception as e:
+            print(e)
+            number_of_fails += 1
             continue
+
         if cv2.waitKey(1) == 27:
             break
 
     result = []
     temp_result = []
     result_counter = 0
+
     for each_field in n_results:
-        if result_counter == 7:
+        if result_counter == 8:
             result_counter = 0
             result.append(temp_result)
             temp_result = []
         temp_result.append(mode(each_field))
         result_counter += 1
-
-    # print(result)
+    result.append(temp_result)
     return image, result
 
     # img2 = cv2.imread("images/chessboardARUCO_2.png", 1)

@@ -3,7 +3,9 @@ import datetime
 import json
 import cv2
 import numpy as np
+import requests
 import threading
+from checkers.Field import Field
 import checkers.configs.config_checkers_window as ccw
 import checkers.configs.config_colors as ccc
 import checkers.configs.config_buttons as cb
@@ -21,15 +23,25 @@ class CheckersWindow:
     """
 
     def __init__(self):
+        self._url = "http://192.168.1.112:8080/shot.jpg"
+
         self._camera = cv2.VideoCapture(0)
-        self._state = [[0, 1, 0, 1, 0, 1, 0, 1],
-                       [1, 0, 1, 0, 1, 0, 1, 0],
-                       [0, 1, 0, 1, 0, 1, 0, 1],
-                       [1, 0, 1, 0, 1, 0, 1, 0],
-                       [0, 1, 0, 1, 0, 1, 0, 1],
-                       [1, 0, 1, 0, 1, 0, 1, 0],
-                       [0, 1, 0, 1, 0, 1, 0, 1],
-                       [1, 0, 1, 0, 1, 0, 1, 0]]
+        self._state = [[Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK,
+                        Field.WHITE],
+                       [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE,
+                        Field.BLACK],
+                       [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK,
+                        Field.WHITE],
+                       [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE,
+                        Field.BLACK],
+                       [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK,
+                        Field.WHITE],
+                       [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE,
+                        Field.BLACK],
+                       [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK,
+                        Field.WHITE],
+                       [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE,
+                        Field.BLACK]]
 
         self._game = [self._state]
 
@@ -68,7 +80,6 @@ class CheckersWindow:
         # run_logic_thread.setDaemon(True)
         # run_logic_thread.start()
         while not self._done:
-            print("Pętlimy")
             self._dt = self._clock.tick(30) / 1000
             self.handle_events()
             self.run_logic()
@@ -111,10 +122,9 @@ class CheckersWindow:
         #TODO describes how to connect camera with app
         returns: True
         """
-        # ret, self._frame = self._camera.read()
-
-        #self._frame = cv2.resize(self._frame, (ccw.CAMERA_W, ccw.CAMERA_H))
-        #self._frame = cv2.cvtColor(self._frame, 3)
+        img_resp = requests.get(self._url)
+        img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
+        self._frame = cv2.imdecode(img_arr, -1)
 
     def run_logic(self):
         """
@@ -122,7 +132,7 @@ class CheckersWindow:
         returns: True
         """
         print("Przerabiamy")
-        self._img, helo = start(self._frame, n=5)
+        self._img, self._state = start(self._frame, self._state, n=1)
         self._img = cv2.flip(self._img, 1)
         # cv2.imshow("TESTOWANYASDASD", self._img)
         # cv2.waitKey(0)
@@ -159,15 +169,15 @@ class CheckersWindow:
         for row in self._state:
             f_counter = 0
             for field in row:
-                if field == 0:
+                if field == Field.BLACK:
                     self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                           ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                           ccw.RECT_SIZE, ccw.RECT_SIZE])
-                elif field == 1:
+                elif field == Field.WHITE:
                     self._screen.blit(self._white_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                           ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                           ccw.RECT_SIZE, ccw.RECT_SIZE])
-                elif field == 2:
+                elif field == Field.BLACK_FIELD_BLUE_PAWN:
                     self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                           ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                           ccw.RECT_SIZE, ccw.RECT_SIZE])
@@ -175,7 +185,7 @@ class CheckersWindow:
                     pg.draw.ellipse(self._screen, ccc.WHITE, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                               ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                               ccw.PAWN_SIZE, ccw.PAWN_SIZE])
-                elif field == 3:
+                elif field == Field.BLACK_FIELD_RED_PAWN:
                     self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                           ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                           ccw.RECT_SIZE, ccw.RECT_SIZE])
@@ -187,7 +197,7 @@ class CheckersWindow:
             r_counter = r_counter + 1
 
         # --- drawing frame on the window
-        img = np.rot90(self._img)
+        img = np.rot90(self._frame)
         #img = self._img
         img = pg.surfarray.make_surface(img)
         self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))
