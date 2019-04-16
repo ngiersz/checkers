@@ -59,7 +59,8 @@ class CheckersWindow:
         self._clock = pg.time.Clock()
 
         self._dt = self._clock.tick(30) / 1000
-        self._frame = cv2.imread('images/chessboardPawns.png')
+        self._frame = cv2.imread('images/chessboardClean.png')
+        self._frame = cv2.resize(self._frame, (500, 500))
         self._img = self._frame
 
         pg.display.set_caption("checkers")
@@ -197,7 +198,7 @@ class CheckersWindow:
             r_counter = r_counter + 1
 
         # --- drawing frame on the window
-        img = np.rot90(self._frame)
+        img = np.rot90(self._img)
         #img = self._img
         img = pg.surfarray.make_surface(img)
         self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))
