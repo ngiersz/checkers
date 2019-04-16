@@ -11,8 +11,8 @@ STANDARD_DEVIATION = 20
 
 
 def detect_shape(contours):
-    print('START: detect_shape')
-    start = time.time()
+    # print('START: detect_shape')
+    # start = time.time()
     # initialize the shape name and approximate the contour
     shape = None
     peri = 0.04 * cv2.arcLength(contours, True)
@@ -29,27 +29,29 @@ def detect_shape(contours):
         shape = "circle"
 
     # return the name of the shape
-    end = time.time()
-    print('END: detect_shape')
-    print(end-start)
-    print('')
+    # end = time.time()
+    # print('END: detect_shape')
+    # print(end-start)
+    # print('')
 
     return shape
 
 
 def get_fields_as_list_of_points_list(image):
-    print('START: get_fields_as_list_of_points_list')
-    start = time.time()
+
+    # print('START: get_fields_as_list_of_points_list')
+    # start = time.time()
 
     # finding black fields
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    thresh = cv2.threshold(blurred, 80, 255, cv2.THRESH_BINARY_INV)[1]
+    thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
+    cv2.imshow("Black fields - thresh", thresh)
     kernel = np.ones((5, 5), np.uint8)
     dilate = cv2.dilate(thresh, kernel, iterations=6)
-    # cv2.imshow("Black fields - dilate", dilate)
-    erode = cv2.erode(dilate, kernel, iterations=7)
-    # cv2.imshow("Black fields - erode", erode)
+    cv2.imshow("Black fields - dilate", dilate)
+    erode = cv2.erode(dilate, kernel, iterations=8)
+    cv2.imshow("Black fields - erode", erode)
     contours_temp = cv2.findContours(erode.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # contours of black fields
     contours = imutils.grab_contours(contours_temp)
@@ -61,16 +63,18 @@ def get_fields_as_list_of_points_list(image):
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
     kernel = np.ones((5, 5), np.uint8)
-    erode = cv2.erode(thresh, kernel, iterations=6)
+    erode = cv2.erode(thresh, kernel, iterations=7)
     # cv2.imshow("White fields - erode", erode)
-    dilate = cv2.dilate(erode, kernel, iterations=6)
-    # cv2.imshow("Black fields - dilate", dilate)
+    dilate = cv2.dilate(erode, kernel, iterations=4)
+    # cv2.imshow("White fields - dilate", dilate)
+    cv2.waitKey(0)
     contours_temp = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-
+    print(len(imutils.grab_contours(contours_temp)))
     # add contours of white fields
     contours = imutils.grab_contours(contours_temp) + contours
     contours.reverse()
     # check if 64 fields are detected
+    print(len(contours))
     if len(contours) != 64:
         return None
 
@@ -79,7 +83,7 @@ def get_fields_as_list_of_points_list(image):
     counter = 0
     black_white_fields = [Field.BLACK, Field.WHITE]
     for i in range(len(contours)):
-        if i + int(counter / 8) % 2 == 0:
+        if i % 2 == 0:
             contours_sorted.append(contours[int(i/2)])
             values_of_fields.append(black_white_fields[0])
         else:
@@ -111,19 +115,21 @@ def get_fields_as_list_of_points_list(image):
             list_of_points_in_one_row =[]
 
     for i in range(len(list_of_points_list)):
-        cv2.putText(image, str(i),(list_of_points_list[i][0], list_of_points_list[i][1]),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127,127,127),2, cv2.LINE_AA )
+        cv2.putText(image, str(i), (list_of_points_list[i][0], list_of_points_list[i][1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127, 127, 127),2 , cv2.LINE_AA )
 
-    end = time.time()
-    print('END: get_fields_as_list_of_points_list')
-    print(end-start)
-    print('')
+    # end = time.time()
+    # print('END: get_fields_as_list_of_points_list')
+    # print(end-start)
+    # print('')
 
+    print('fields')
+    print(list_of_points_list)
     return list_of_points_list #, image
 
 
 def get_list_of_pawns_points(image, threshold):
-    print('START: get_list_of_pawns_points')
-    start = time.time()
+    # print('START: get_list_of_pawns_points')
+    # start = time.time()
 
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -136,8 +142,7 @@ def get_list_of_pawns_points(image, threshold):
     # cv2.imshow("pawnsThresh" + str(threshold) + 'dilate', dilate)
 
 
-    contours_temp = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL,
-                            cv2.CHAIN_APPROX_SIMPLE)
+    contours_temp = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # contours of black fields
     contours = imutils.grab_contours(contours_temp)
     contours.reverse()
@@ -156,20 +161,20 @@ def get_list_of_pawns_points(image, threshold):
         y = int(y/count)
         list_of_pawns_points.append([x, y])
 
-    end = time.time()
-    print('END: get_list_of_pawns_points')
-    print(end-start)
+    # end = time.time()
+    # print('END: get_list_of_pawns_points')
+    # print(end-start)
     return list_of_pawns_points
 
 
 def get_fields_info_as_list(list_of_fields_points, list_of_blue_pawns_points, list_of_red_pawns_points, image):
-    print('START: get_fields_info_as_list')
-    start = time.time()
+    # print('START: get_fields_info_as_list')
+    # start = time.time()
     # initialize list with empty black and white fields
     result = []
     counter = 0
     for i in range(64):
-        if (i + int(counter / 8)) % 2 == 0:
+        if (i + counter/8) % 2 == 0:
             result.append(Field.BLACK)
         else:
             result.append(Field.WHITE)
@@ -187,10 +192,10 @@ def get_fields_info_as_list(list_of_fields_points, list_of_blue_pawns_points, li
                 result[id] = Field.BLACK_FIELD_RED_PAWN
                 # print("red")
 
-    end = time.time()
-    print('END: get_fields_info_as_list')
-    print(end-start)
-    print('')
+    # end = time.time()
+    # print('END: get_fields_info_as_list')
+    # print(end-start)
+    # print('')
 
     return result
 
@@ -258,20 +263,34 @@ def get_chessboard_as_image(image):
     #             DLx = [np.int32(dst)[id]][0][0][0]
     #             DLy = [np.int32(dst)[id]][0][0][1]
     #
-
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_7X7_50)
     parameters = aruco.DetectorParameters_create()
     corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
     frame_markers = aruco.drawDetectedMarkers(image.copy(), corners, ids)
-    ULx = corners[1][0][2][0]  # x of UP LEFT corner
-    ULy = corners[1][0][2][1]  # y of UP LEFT corner
-    URx = corners[3][0][3][0]  # x of UP RIGHT corner
-    URy = corners[3][0][3][1]  # y of UP RIGHT corner
-    DLx = corners[2][0][1][0]  # x of DOWN LEFT corner
-    DLy = corners[2][0][1][1]  # y of DOWN LEFT corner
-    DRx = corners[0][0][0][0]  # x of DOWN RIGHT corner
-    DRy = corners[0][0][0][1]  # y of DOWN RIGHT corner
+    if len(corners) < 4:
+        return None
+    sorted_corners = [x for _, x in sorted(zip(ids, corners))]
+
+    ULx = sorted_corners[0][0][2][0]  # x of UP LEFT corner
+    ULy = sorted_corners[0][0][2][1]  # y of UP LEFT corner
+    URx = sorted_corners[3][0][3][0]  # x of UP RIGHT corner
+    URy = sorted_corners[3][0][3][1]  # y of UP RIGHT corner
+    DLx = sorted_corners[2][0][1][0]  # x of DOWN LEFT corner
+    DLy = sorted_corners[2][0][1][1]  # y of DOWN LEFT corner
+    DRx = sorted_corners[1][0][0][0]  # x of DOWN RIGHT corner
+    DRy = sorted_corners[1][0][0][1]  # y of DOWN RIGHT corner
+
+
+    # aruco original
+    # ULx = sorted_corners[0][0][2][0]  # x of UP LEFT corner
+    # ULy = sorted_corners[0][0][2][1]  # y of UP LEFT corner
+    # URx = sorted_corners[1][0][1][0]  # x of UP RIGHT corner
+    # URy = sorted_corners[1][0][1][1]  # y of UP RIGHT corner
+    # DLx = sorted_corners[2][0][3][0]  # x of DOWN LEFT corner
+    # DLy = sorted_corners[2][0][3][1]  # y of DOWN LEFT corner
+    # DRx = sorted_corners[3][0][0][0]  # x of DOWN RIGHT corner
+    # DRy = sorted_corners[3][0][0][1]  # y of DOWN RIGHT corner
 
     pts1 = np.float32([[ULx, ULy], [URx, URy], [DLx, DLy], [DRx, DRy]])
     pts2 = np.float32([[0, 0], [500, 0], [0, 500], [500, 500]])
@@ -284,20 +303,28 @@ def get_chessboard_as_image(image):
 def start(camera_image):
     obraz = cv2.imread("images/chessBoardARUCO_2.png")
 
-    # url = "http://192.168.1.66:8080/shot.jpg"
+    url = "http://192.168.1.66:8080/shot.jpg"
     n = 5
     n_results = [[] for i in range(64)]
     while True:
         counter = 0
         while counter < n:
-            print('START: a tutaj')
-            start = time.time()
-            # img_resp = requests.get(url)
-            # img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
-            # camera_image = cv2.imdecode(img_arr, -1)
-            camera_image = obraz
+            # print('START: a tutaj')
+            # start = time.time()
+            img_resp = requests.get(url)
+            img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
+            camera_image = cv2.imdecode(img_arr, -1)
+            # camera_image = obraz
 
             image = get_chessboard_as_image(camera_image)
+
+            while image is None:
+                img_resp = requests.get(url)
+                img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
+                camera_image = cv2.imdecode(img_arr, -1)
+                # camera_image = obraz
+                image = get_chessboard_as_image(camera_image)
+
             # Converts images from BGR to HSV
             image_HSV = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2HSV)
 
@@ -320,6 +347,8 @@ def start(camera_image):
 
             # Find fields
             fields = get_fields_as_list_of_points_list(image)
+
+
             info_about_each_field = get_fields_info_as_list(fields, blue_pawns, red_pawns, image)
             for i, x in enumerate(info_about_each_field):
                 n_results[i].append(x)
@@ -336,10 +365,10 @@ def start(camera_image):
             if cv2.waitKey(1) == 27:
                 break
 
-            end = time.time()
-            print('END: a tutaj')
-            print(end - start)
-            print('')
+            # end = time.time()
+            # print('END: a tutaj')
+            # print(end - start)
+            # print('')
 
         result = []
         for each_field in n_results:
