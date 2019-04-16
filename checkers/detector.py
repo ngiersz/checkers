@@ -223,12 +223,17 @@ def start(camera_image, last_result, n=5):
 
             # Find fields
             fields = get_fields_as_list_of_points_list(image)
+            if fields is None:
+                number_of_fails += 1
+                continue
+                
             info_about_each_field = get_fields_info_as_list(fields, blue_pawns, red_pawns, image)
             for i, x in enumerate(info_about_each_field):
                 n_results[i].append(x)
 
             if image is None:
                 counter = counter - 1
+                number_of_fails += 1
                 continue
             counter = counter + 1
 
