@@ -132,18 +132,13 @@ class CheckersWindow:
         Checking if move was correct and saving state of the game
         returns: True
         """
-        print("Przerabiamy")
         self._img, self._state = start(self._frame, self._state, n=1)
         self._img = cv2.flip(self._img, 1)
-        # cv2.imshow("TESTOWANYASDASD", self._img)
-        # cv2.waitKey(0)
-        print("Przerobilismy")
 
         if self._save:
             self._game.append(self._state)
         self._clock.tick(60)
         #while not self._done:
-
 
     def save_game(self):
         """
