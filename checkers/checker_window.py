@@ -23,7 +23,7 @@ class CheckersWindow:
     """
 
     def __init__(self):
-        self._url = "http://192.168.1.112:8080/shot.jpg"
+        self._url = "http://192.168.43.1:8080/shot.jpg"
 
         self._camera = cv2.VideoCapture(0)
         self._state = [[Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK,
@@ -132,7 +132,7 @@ class CheckersWindow:
         Checking if move was correct and saving state of the game
         returns: True
         """
-        self._img, self._state = start(self._frame, self._state, n=1)
+        self._img, self._state = start(self._frame, self._state, n=10)
         self._img = cv2.flip(self._img, 1)
 
         if self._save:

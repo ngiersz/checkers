@@ -277,7 +277,7 @@ def start(camera_image, last_result, n=5):
             upper_blue = np.array([130, 255, 255], dtype='uint8')
             mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
             res = cv2.bitwise_and(image_HSV, image_HSV, mask=mask)
-            blue_pawns = get_list_of_pawns_points(image=res, threshold=100)
+            blue_pawns = get_list_of_pawns_points(image=res, threshold=131)
 
             # Find red pawns
             lower_red1 = np.array([0, 70, 50], dtype='uint8')
