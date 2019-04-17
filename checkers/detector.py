@@ -4,6 +4,7 @@ import numpy as np
 from checkers.Field import Field
 import requests
 from statistics import mode
+import time
 from cv2 import aruco
 
 STANDARD_DEVIATION = 20
@@ -34,7 +35,8 @@ def get_fields_as_list_of_points_list(image):
     # finding black fields
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    thresh = cv2.threshold(blurred, 80, 255, cv2.THRESH_BINARY_INV)[1]
+    thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
+    # cv2.imshow("Black fields - thresh", thresh)
     kernel = np.ones((5, 5), np.uint8)
     dilate = cv2.dilate(thresh, kernel, iterations=6)
     # cv2.imshow("Black fields - dilate", dilate)
@@ -51,7 +53,7 @@ def get_fields_as_list_of_points_list(image):
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
     kernel = np.ones((5, 5), np.uint8)
-    erode = cv2.erode(thresh, kernel, iterations=6)
+    erode = cv2.erode(thresh, kernel, iterations=7)
     # cv2.imshow("White fields - erode", erode)
     dilate = cv2.dilate(erode, kernel, iterations=6)
     # cv2.imshow("Black fields - dilate", dilate)
@@ -81,12 +83,12 @@ def get_fields_as_list_of_points_list(image):
             y = 0
             count = 0
             for one_measurement in c:
-                x = x + one_measurement[0][0] # x of measurement
-                y = y + one_measurement[0][1] # y of measurement
-                count = count + 1 # count of measurements
+                x = x + one_measurement[0][0]  # x of measurement
+                y = y + one_measurement[0][1]  # y of measurement
+                count = count + 1  # count of measurements
 
-            x = int(x / count) # x mean of measurements
-            y = int(y / count) # y mean of measurements
+            x = int(x / count)  # x mean of measurements
+            y = int(y / count)  # y mean of measurements
             list_of_points_in_one_row.append([x,y])
 
         if len(list_of_points_in_one_row) == 8:
@@ -95,9 +97,9 @@ def get_fields_as_list_of_points_list(image):
             list_of_points_in_one_row =[]
 
     for i in range(len(list_of_points_list)):
-        cv2.putText(image, str(i),(list_of_points_list[i][0], list_of_points_list[i][1]),cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127,127,127),2, cv2.LINE_AA )
+        cv2.putText(image, str(i), (list_of_points_list[i][0], list_of_points_list[i][1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127, 127, 127),2 , cv2.LINE_AA )
 
-    return list_of_points_list #, imageF
+    return list_of_points_list #, image
 
 
 def get_list_of_pawns_points(image, threshold):
@@ -112,9 +114,7 @@ def get_list_of_pawns_points(image, threshold):
     dilate = cv2.dilate(erode, kernel, iterations=3)
     # cv2.imshow("pawnsThresh" + str(threshold) + 'dilate', dilate)
 
-
-    contours_temp = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL,
-                            cv2.CHAIN_APPROX_SIMPLE)
+    contours_temp = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # contours of black fields
     contours = imutils.grab_contours(contours_temp)
     contours.reverse()
@@ -146,13 +146,13 @@ def get_fields_info_as_list(list_of_fields_points, list_of_blue_pawns_points, li
         else:
             result.append(Field.WHITE)
         counter += 1
-    for id, field in enumerate(list_of_fields_points):
 
+    for id, field in enumerate(list_of_fields_points):
         for pawn in list_of_blue_pawns_points:
             if abs(field[0] - pawn[0]) <= 20 and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
                 cv2.circle(image, (field[0], field[1]), 10, (255, 0, 255), 3)
                 result[id] = Field.BLACK_FIELD_BLUE_PAWN
-
+                # print("blue")
         for pawn in list_of_red_pawns_points:
             if abs(field[0] - pawn[0]) <= 20 and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
                 cv2.circle(image, (field[0], field[1]), 10, (255, 255, 0), 3)
@@ -162,30 +162,99 @@ def get_fields_info_as_list(list_of_fields_points, list_of_blue_pawns_points, li
 
 
 def get_chessboard_as_image(image):
+
+    # ULx = None  # x of UP LEFT corner
+    # ULy = None  # y of UP LEFT corner
+    # URx = None  # x of UP RIGHT corner
+    # URy = None  # y of UP RIGHT corner
+    # DLx = None  # x of DOWN LEFT corner
+    # DLy = None  # y of DOWN LEFT corner
+    # DRx = None  # x of DOWN RIGHT corner
+    # DRy = None  # y of DOWN RIGHT corner
+    #
+    # MIN_MATCH_COUNT = 5
+    # FLANN_INDEX_KDTREE = 0
+    #
+    # markers_names = ('images/DOWN_LEFT.png', 'images/UP_RIGHT.png', 'images/UP_LEFT.png', 'images/DOWN_RIGHT.png')
+    #
+    # # id is one of the corners of detected image that we need
+    # train_image = image.copy()
+    # for id, markerName in enumerate(markers_names):
+    #     query_image = cv2.imread(markerName, 0)
+    #
+    #     # Initiate SIFT detector
+    #     sift = cv2.xfeatures2d.SIFT_create()
+    #
+    #     # find the keypoints and descriptors with SIFT
+    #     kp1, des1 = sift.detectAndCompute(query_image, None)
+    #     kp2, des2 = sift.detectAndCompute(train_image, None)
+    #
+    #     index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+    #     search_params = dict(checks=50)
+    #
+    #     flann = cv2.FlannBasedMatcher(index_params, search_params)
+    #
+    #     matches = flann.knnMatch(des1, des2, k=2)
+    #
+    #     # store all the good matches as per Lowe's ratio test.
+    #     good = []
+    #     for m, n in matches:
+    #         if m.distance < 0.7 * n.distance:
+    #             good.append(m)
+    #
+    #     if len(good) > MIN_MATCH_COUNT:
+    #         src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
+    #         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
+    #
+    #         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+    #         h, w = query_image.shape
+    #         pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
+    #         dst = cv2.perspectiveTransform(pts, M)
+    #
+    #         if id == 0:
+    #             DRx = [np.int32(dst)[id]][0][0][0]
+    #             DRy = [np.int32(dst)[id]][0][0][1]
+    #         elif id == 1:
+    #             URx = [np.int32(dst)[id]][0][0][0]
+    #             URy = [np.int32(dst)[id]][0][0][1]
+    #         elif id == 2:
+    #             ULx = [np.int32(dst)[id]][0][0][0]
+    #             ULy = [np.int32(dst)[id]][0][0][1]
+    #         elif id == 3:
+    #             DLx = [np.int32(dst)[id]][0][0][0]
+    #             DLy = [np.int32(dst)[id]][0][0][1]
+    #
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    thresh = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,41,40)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_7X7_50)
     parameters = aruco.DetectorParameters_create()
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(thresh, aruco_dict, parameters=parameters)
     frame_markers = aruco.drawDetectedMarkers(image.copy(), corners, ids)
 
-    if not corners:
-        print("No corners found")
-        return None
+    # print(tuple(rejectedImgPoints[0][0][0]))
+    # for x in rejectedImgPoints:
+    #     cv2.circle(image,tuple(x[0][0]),8, (255,0,0), 8)
+    # cv2.imshow("aa", frame_markers)
+    # cv2.waitKey(0)
 
-    ULx = corners[1][0][2][0]  # x of UP LEFT corner
-    ULy = corners[1][0][2][1]  # y of UP LEFT corner
-    URx = corners[3][0][3][0]  # x of UP RIGHT corner
-    URy = corners[3][0][3][1]  # y of UP RIGHT corner
-    DLx = corners[2][0][1][0]  # x of DOWN LEFT corner
-    DLy = corners[2][0][1][1]  # y of DOWN LEFT corner
-    DRx = corners[0][0][0][0]  # x of DOWN RIGHT corner
-    DRy = corners[0][0][0][1]  # y of DOWN RIGHT corner
+    if len(corners) < 4:
+        return None
+    sorted_corners = [x for _, x in sorted(zip(ids, corners))]
+
+    ULx = sorted_corners[0][0][2][0]  # x of UP LEFT corner
+    ULy = sorted_corners[0][0][2][1]  # y of UP LEFT corner
+    URx = sorted_corners[3][0][3][0]  # x of UP RIGHT corner
+    URy = sorted_corners[3][0][3][1]  # y of UP RIGHT corner
+    DLx = sorted_corners[2][0][1][0]  # x of DOWN LEFT corner
+    DLy = sorted_corners[2][0][1][1]  # y of DOWN LEFT corner
+    DRx = sorted_corners[1][0][0][0]  # x of DOWN RIGHT corner
+    DRy = sorted_corners[1][0][0][1]  # y of DOWN RIGHT corner
+
 
     pts1 = np.float32([[ULx, ULy], [URx, URy], [DLx, DLy], [DRx, DRy]])
     pts2 = np.float32([[0, 0], [500, 0], [0, 500], [500, 500]])
     M = cv2.getPerspectiveTransform(pts1, pts2)
     result = cv2.warpPerspective(image, M, (500, 500))
-
     return result
 
 
@@ -226,7 +295,7 @@ def start(camera_image, last_result, n=5):
             if fields is None:
                 number_of_fails += 1
                 continue
-                
+
             info_about_each_field = get_fields_info_as_list(fields, blue_pawns, red_pawns, image)
             for i, x in enumerate(info_about_each_field):
                 n_results[i].append(x)
