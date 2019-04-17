@@ -46,12 +46,12 @@ def get_fields_as_list_of_points_list(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
-    cv2.imshow("Black fields - thresh", thresh)
+    # cv2.imshow("Black fields - thresh", thresh)
     kernel = np.ones((5, 5), np.uint8)
     dilate = cv2.dilate(thresh, kernel, iterations=6)
-    cv2.imshow("Black fields - dilate", dilate)
-    erode = cv2.erode(dilate, kernel, iterations=8)
-    cv2.imshow("Black fields - erode", erode)
+    # cv2.imshow("Black fields - dilate", dilate)
+    erode = cv2.erode(dilate, kernel, iterations=7)
+    # cv2.imshow("Black fields - erode", erode)
     contours_temp = cv2.findContours(erode.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # contours of black fields
     contours = imutils.grab_contours(contours_temp)
@@ -65,16 +65,15 @@ def get_fields_as_list_of_points_list(image):
     kernel = np.ones((5, 5), np.uint8)
     erode = cv2.erode(thresh, kernel, iterations=7)
     # cv2.imshow("White fields - erode", erode)
-    dilate = cv2.dilate(erode, kernel, iterations=4)
+    dilate = cv2.dilate(erode, kernel, iterations=6)
     # cv2.imshow("White fields - dilate", dilate)
-    cv2.waitKey(0)
     contours_temp = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    print(len(imutils.grab_contours(contours_temp)))
     # add contours of white fields
     contours = imutils.grab_contours(contours_temp) + contours
     contours.reverse()
+    # cv2.waitKey()
     # check if 64 fields are detected
-    print(len(contours))
+    # print(len(contours))
     if len(contours) != 64:
         return None
 
@@ -101,12 +100,12 @@ def get_fields_as_list_of_points_list(image):
             y = 0
             count = 0
             for one_measurement in c:
-                x = x + one_measurement[0][0] # x of measurement
-                y = y + one_measurement[0][1] # y of measurement
-                count = count + 1 # count of measurements
+                x = x + one_measurement[0][0]  # x of measurement
+                y = y + one_measurement[0][1]  # y of measurement
+                count = count + 1  # count of measurements
 
-            x = int(x / count) # x mean of measurements
-            y = int(y / count) # y mean of measurements
+            x = int(x / count)  # x mean of measurements
+            y = int(y / count)  # y mean of measurements
             list_of_points_in_one_row.append([x,y])
 
         if len(list_of_points_in_one_row) == 8:
@@ -122,8 +121,7 @@ def get_fields_as_list_of_points_list(image):
     # print(end-start)
     # print('')
 
-    print('fields')
-    print(list_of_points_list)
+
     return list_of_points_list #, image
 
 
@@ -140,7 +138,7 @@ def get_list_of_pawns_points(image, threshold):
     # cv2.imshow("pawnsThresh" + str(threshold) + 'erode', erode)
     dilate = cv2.dilate(erode, kernel, iterations=3)
     # cv2.imshow("pawnsThresh" + str(threshold) + 'dilate', dilate)
-
+    # cv2.waitKey(0)
 
     contours_temp = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     # contours of black fields
@@ -264,10 +262,18 @@ def get_chessboard_as_image(image):
     #             DLy = [np.int32(dst)[id]][0][0][1]
     #
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    thresh = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,41,40)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_7X7_50)
     parameters = aruco.DetectorParameters_create()
-    corners, ids, rejectedImgPoints = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+    corners, ids, rejectedImgPoints = aruco.detectMarkers(thresh, aruco_dict, parameters=parameters)
     frame_markers = aruco.drawDetectedMarkers(image.copy(), corners, ids)
+
+    # print(tuple(rejectedImgPoints[0][0][0]))
+    # for x in rejectedImgPoints:
+    #     cv2.circle(image,tuple(x[0][0]),8, (255,0,0), 8)
+    # cv2.imshow("aa", frame_markers)
+    # cv2.waitKey(0)
+
     if len(corners) < 4:
         return None
     sorted_corners = [x for _, x in sorted(zip(ids, corners))]
@@ -282,16 +288,6 @@ def get_chessboard_as_image(image):
     DRy = sorted_corners[1][0][0][1]  # y of DOWN RIGHT corner
 
 
-    # aruco original
-    # ULx = sorted_corners[0][0][2][0]  # x of UP LEFT corner
-    # ULy = sorted_corners[0][0][2][1]  # y of UP LEFT corner
-    # URx = sorted_corners[1][0][1][0]  # x of UP RIGHT corner
-    # URy = sorted_corners[1][0][1][1]  # y of UP RIGHT corner
-    # DLx = sorted_corners[2][0][3][0]  # x of DOWN LEFT corner
-    # DLy = sorted_corners[2][0][3][1]  # y of DOWN LEFT corner
-    # DRx = sorted_corners[3][0][0][0]  # x of DOWN RIGHT corner
-    # DRy = sorted_corners[3][0][0][1]  # y of DOWN RIGHT corner
-
     pts1 = np.float32([[ULx, ULy], [URx, URy], [DLx, DLy], [DRx, DRy]])
     pts2 = np.float32([[0, 0], [500, 0], [0, 500], [500, 500]])
     M = cv2.getPerspectiveTransform(pts1, pts2)
@@ -303,7 +299,7 @@ def get_chessboard_as_image(image):
 def start(camera_image):
     obraz = cv2.imread("images/chessBoardARUCO_2.png")
 
-    url = "http://192.168.1.66:8080/shot.jpg"
+    url = "http://192.168.43.1:8080/shot.jpg"
     n = 5
     n_results = [[] for i in range(64)]
     while True:
@@ -333,7 +329,7 @@ def start(camera_image):
             upper_blue = np.array([130, 255, 255], dtype='uint8')
             mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
             res = cv2.bitwise_and(image_HSV, image_HSV, mask=mask)
-            blue_pawns = get_list_of_pawns_points(image=res, threshold=100)
+            blue_pawns = get_list_of_pawns_points(image=res, threshold=131)
 
             # Find red pawns
             lower_red1 = np.array([0, 70, 50], dtype='uint8')
@@ -365,17 +361,9 @@ def start(camera_image):
             if cv2.waitKey(1) == 27:
                 break
 
-            # end = time.time()
-            # print('END: a tutaj')
-            # print(end - start)
-            # print('')
-
         result = []
         for each_field in n_results:
             result.append(mode(each_field))
-
-
-
 
         # # show pretty table result :)
         # for i, x in enumerate(result):
@@ -391,3 +379,21 @@ def start(camera_image):
 
 if __name__ == '__main__':
     start(None)
+    # image = cv2.imread('images/test2_aruco.png')
+    # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # # thresh = cv2.adaptiveThreshold(gray, 100, 255, cv2.THRESH_BINARY)[1]
+    # thresh = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,41,2)
+    #
+    # thresh2 = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,41,40)
+    # # cv2.imshow("thresh", thresh)
+    # cv2.imshow("thresh2", thresh2)
+    #
+    # aruco_dict = aruco.Dictionary_get(aruco.DICT_7X7_50)
+    # parameters = aruco.DetectorParameters_create()
+    # corners, ids, rejectedImgPoints = aruco.detectMarkers(thresh, aruco_dict, parameters=parameters)
+    # frame_markers = aruco.drawDetectedMarkers(image.copy(), corners, ids)
+    # # print(tuple(rejectedImgPoints[0][0][0]))
+    # # for x in rejectedImgPoints:
+    # #     cv2.circle(image,tuple(x[0][0]),8, (255,0,0), 8)
+    # cv2.imshow("aa", frame_markers)
+    # cv2.waitKey(0)
