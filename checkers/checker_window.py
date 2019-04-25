@@ -23,7 +23,7 @@ class CheckersWindow:
     """
 
     def __init__(self):
-        self._url = "http://192.168.1.112:8080/shot.jpg"
+        self._url = "http://192.168.1.66:8080/shot.jpg"
 
         self._camera = cv2.VideoCapture(0)
         self._state = [[Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK,
@@ -59,7 +59,7 @@ class CheckersWindow:
         self._clock = pg.time.Clock()
 
         self._dt = self._clock.tick(30) / 1000
-        self._frame = cv2.imread('images/chessboardClean.png')
+        self._frame = cv2.imread('chessboardClean.png')
         self._frame = cv2.resize(self._frame, (500, 500))
         self._img = self._frame
 
@@ -135,6 +135,7 @@ class CheckersWindow:
         self._img, self._state = start(self._frame, self._state, n=1)
         self._img = cv2.flip(self._img, 1)
 
+
         if self._save:
             self._game.append(self._state)
         self._clock.tick(60)
@@ -150,6 +151,7 @@ class CheckersWindow:
         file_name = 'game_{}'.format(datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
         with open(file_name, 'w') as outfile:
             json.dump(self._game, outfile)
+
 
     def draw(self):
         """
