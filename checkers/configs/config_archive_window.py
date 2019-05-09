@@ -1,6 +1,6 @@
 import cv2
 import pygame as pg
-
+from checkers.Field import Field
 """
 CONFIG
 Default checkers_window  settings
@@ -34,4 +34,14 @@ BLACK_PAWN = cv2.cvtColor(cv2.imread("black_pawn.png"), 3)
 FONT = pg.font.SysFont('Comic Sans MS', 32)
 FONT_TEXT = pg.font.SysFont('Comic Sans MS', 20)
 NO_GAMES = "NoGamesSaved"
+
+BEGIN_STATE = [[Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE],
+               [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK],
+               [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE],
+               [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK],
+               [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE],
+               [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK],
+               [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE],
+               [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK]]
+
 

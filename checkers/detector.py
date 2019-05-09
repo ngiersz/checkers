@@ -262,6 +262,7 @@ def start(camera_image, last_result, n=5):
     n_results = [[] for i in range(64)]
     counter = 0
     number_of_fails = 0
+    # print("WE TRy to run logic")
     while counter < n:
 
         if number_of_fails > 10:

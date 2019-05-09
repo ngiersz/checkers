@@ -21,7 +21,7 @@ class MenuWindow:
         self._done = False
         self._all_sprites = pg.sprite.Group()
         self._dt = self._clock.tick(30) / 1000
-        self._screen_color = ccc.BLUE
+        self._screen_color = ccc.BEIGE
 
         self.start_button = Button(
             ccm.MENU_SIZE[0] / 2 - ccm.NORMAL_RECT / 2,  ccm.MENU_SIZE[1]/3,
@@ -90,6 +90,7 @@ class MenuWindow:
 
     def checker_window(self):
         CheckersWindow().main()
+        print("checkers")
 
     def archive_window(self):
         ArchiveWindow().main()

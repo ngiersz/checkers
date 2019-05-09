@@ -4,6 +4,8 @@ import json
 import cv2
 import numpy as np
 import requests
+import time
+import eventlet
 import threading
 from checkers.Field import Field
 import checkers.configs.config_checkers_window as ccw
@@ -25,23 +27,8 @@ class CheckersWindow:
     def __init__(self):
         self._url = "http://192.168.43.1:8080/shot.jpg"
 
-        self._camera = cv2.VideoCapture(0)
-        self._state = [[Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK,
-                        Field.WHITE],
-                       [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE,
-                        Field.BLACK],
-                       [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK,
-                        Field.WHITE],
-                       [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE,
-                        Field.BLACK],
-                       [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK,
-                        Field.WHITE],
-                       [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE,
-                        Field.BLACK],
-                       [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK,
-                        Field.WHITE],
-                       [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE,
-                        Field.BLACK]]
+        self._camera = None
+        self._state = ccw.BEGIN_STATE
 
         self._game = [self._state]
 
@@ -77,15 +64,12 @@ class CheckersWindow:
         Main loop
         returns: True
         """
-        # run_logic_thread = threading.Thread(target=self.run_logic())
-        # run_logic_thread.setDaemon(True)
-        # run_logic_thread.start()
         while not self._done:
             self._dt = self._clock.tick(30) / 1000
             self.handle_events()
-            self.run_logic()
-            self.get_camera_frame()
             self.draw()
+
+
 
     def handle_events(self):
         """
@@ -120,25 +104,33 @@ class CheckersWindow:
     def get_camera_frame(self):
         """
         updates _frame from phone camera
-        #TODO describes how to connect camera with app
+        using requests gets current frame from this._url
+        to host we use "ip webcam"
         returns: True
         """
-        img_resp = requests.get(self._url)
-        img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
-        self._frame = cv2.imdecode(img_arr, -1)
+        try:
+            img_resp = requests.get(self._url, verify=False, timeout=0.2)
+            img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
+            self._frame = cv2.imdecode(img_arr, -1)
+        except Exception as e:
+            self._frame = cv2.imread('images/chessboardPawns.png')
+            self._frame = cv2.resize(self._frame, (500, 500))
+            print(e)
 
     def run_logic(self):
         """
         Checking if move was correct and saving state of the game
         returns: True
         """
-        self._img, self._state = start(self._frame, self._state, n=10)
-        self._img = cv2.flip(self._img, 1)
+        while not self._done:
+            self._img, self._state = start(self._frame, self._state, n=10)
+            self._img = cv2.flip(self._img, 1)
 
-        if self._save:
-            self._game.append(self._state)
-        self._clock.tick(60)
-        #while not self._done:
+            if self._save:
+                self._game.append(self._state)
+            self._clock.tick(60)
+
+        # while not self._done:
 
     def save_game(self):
         """
@@ -230,4 +222,13 @@ class CheckersWindow:
         self._black_pawn = pg.surfarray.make_surface(self._black_pawn)
 
     def main(self):
+
+        run_logic_thread = threading.Thread(target=self.run_logic)
+        run_logic_thread.setDaemon(True)
+        run_logic_thread.start()
+
+        run_thread = threading.Thread(target=self.run)
+        run_thread.setDaemon(True)
+        # run_thread.start()
         self.run()
+
