@@ -8,11 +8,13 @@ import time
 import eventlet
 import threading
 from checkers.Field import Field
+from checkers.Field import Player
 import checkers.configs.config_checkers_window as ccw
 import checkers.configs.config_colors as ccc
 import checkers.configs.config_buttons as cb
 from checkers.button import Button
 from checkers.detector import start
+from checkers.move_validation import MoveValidation
 
 
 class CheckersWindow:
@@ -27,9 +29,10 @@ class CheckersWindow:
     def __init__(self):
         self._url = "http://192.168.1.112:8080/shot.jpg"
 
+        self._player = Player.WHITE
         self._camera = None
         self._state = ccw.BEGIN_STATE
-
+        self._move_validation = MoveValidation()
         self._game = [self._state]
 
         self._screen = pg.display.set_mode(ccw.SIZE, pg.FULLSCREEN)
@@ -68,6 +71,7 @@ class CheckersWindow:
             self._dt = self._clock.tick(30) / 1000
             self.handle_events()
             self.draw()
+            # self.get_camera_frame()
 
     def handle_events(self):
         """
@@ -121,7 +125,17 @@ class CheckersWindow:
         returns: True
         """
         while not self._done:
+            temp_old_state = self._state
+            temp_old_img = self._img
             self._img, self._state = start(self._frame, self._state, n=10)
+            self._move_validation.compare_boards(temp_old_state, self._state)
+            temp_result,self._player = self._move_validation.validate_move(self._player)
+            if not temp_result:
+                print(self._move_validation.ErrorMessage)
+                self._img = temp_old_img
+                self._state = temp_old_state
+            else:
+                print(self._move_validation.SuccessMessage)
             self._img = cv2.flip(self._img, 1)
 
         if self._save:
@@ -219,4 +233,7 @@ class CheckersWindow:
         self._black_pawn = pg.surfarray.make_surface(self._black_pawn)
 
     def main(self):
+        t1 = threading.Thread(target=self.run_logic)
+        t1.start()
         self.run()
+

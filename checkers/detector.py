@@ -98,7 +98,7 @@ def get_fields_as_list_of_points_list(image):
 
     for i in range(len(list_of_points_list)):
         cv2.putText(image, str(i), (list_of_points_list[i][0], list_of_points_list[i][1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127, 127, 127), 2 , cv2.LINE_AA)
-    print(len(list_of_points_list[5]))
+    # print(len(list_of_points_list[5]))
     return list_of_points_list #, image
 
 
