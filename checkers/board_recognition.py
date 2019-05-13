@@ -22,8 +22,8 @@ def save_image(img, prefix):
 class Field(Enum):
     WHITE = 1
     BLACK = 2
-    BLACK_WITH_PLAYER_1 = 3
-    BLACK_WITH_PLAYER_2 = 4
+    BLACK_WITH_WHITE = 3
+    BLACK_WITH_BLACK = 4
 
 
 board_shape = [8, 8]
