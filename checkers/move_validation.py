@@ -59,15 +59,15 @@ class MoveValidation:
         counter_current_black = 0
         for i in range(const.SIZE):
             for j in range(const.SIZE):
-                if self.Previous[i][j] != br.Field.BLACK and self.Previous[i][j] != br.Field.WHITE:
+                if self.Previous[i][j] != enums.Field.BLACK and self.Previous[i][j] != enums.Field.WHITE:
                     counter_previous += 1
-                    if self.Previous[i][j] == br.Field.BLACK_FIELD_BLUE_PAWN:
+                    if self.Previous[i][j] == enums.Field.BLACK_FIELD_BLUE_PAWN:
                         counter_previous_white += 1
                     else:
                         counter_previous_black += 1
-                if self.Current[i][j] != br.Field.BLACK and self.Current[i][j] != br.Field.WHITE:
+                if self.Current[i][j] != enums.Field.BLACK and self.Current[i][j] != enums.Field.WHITE:
                     counter_current += 1
-                    if self.Current[i][j] == br.Field.BLACK_FIELD_BLUE_PAWN:
+                    if self.Current[i][j] == enums.Field.BLACK_FIELD_BLUE_PAWN:
                         counter_current_white += 1
                     else:
                         counter_current_black += 1
@@ -90,13 +90,13 @@ class MoveValidation:
         black_move = False
         move_from = Position()
         move_to = Position()
-        if self.Current[x1][y1] == br.Field.BLACK_FIELD_BLUE_PAWN or self.Current[x1][y1] == br.Field.BLACK_FIELD_RED_PAWN:
+        if self.Current[x1][y1] == enums.Field.BLACK_FIELD_BLUE_PAWN or self.Current[x1][y1] == enums.Field.BLACK_FIELD_RED_PAWN:
             move_from = Position(x2, y2)
             move_to = Position(x1, y1)
         else:
             move_from = Position(x1, y1)
             move_to = Position(x2, y2)
-        if self.Previous[move_from.x][move_from.y] == br.Field.BLACK_FIELD_BLUE_PAWN:
+        if self.Previous[move_from.x][move_from.y] == enums.Field.BLACK_FIELD_BLUE_PAWN:
             white_move = True
         else:
             black_move = True
@@ -146,32 +146,32 @@ class MoveValidation:
         captured_pawn = Position()
         move_to = Position()
 
-        if self.Previous[x1][y1] == br.Field.BLACK and self.Current[x1][y1] != br.Field.BLACK:
+        if self.Previous[x1][y1] == enums.Field.BLACK and self.Current[x1][y1] != enums.Field.BLACK:
             move_to = Position(x1, y1)
-        elif self.Previous[x2][y2] == br.Field.BLACK and self.Current[x2][y2] != br.Field.BLACK:
+        elif self.Previous[x2][y2] == enums.Field.BLACK and self.Current[x2][y2] != enums.Field.BLACK:
             move_to = Position(x2, y2)
-        elif self.Previous[x3][y3] == br.Field.BLACK and self.Current[x3][y3] != br.Field.BLACK:
+        elif self.Previous[x3][y3] == enums.Field.BLACK and self.Current[x3][y3] != enums.Field.BLACK:
             move_to = Position(x3, y3)
         else:
             self.ErrorMessage = 'After capture there should be pawn in place that was not occupied before'
             return False, player
 
-        if self.Current[move_to.x][move_to.y] == br.Field.BLACK_FIELD_RED_PAWN:
-            if self.Previous[x1][y1] == br.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x1][y1] == br.Field.BLACK:
+        if self.Current[move_to.x][move_to.y] == enums.Field.BLACK_FIELD_RED_PAWN:
+            if self.Previous[x1][y1] == enums.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x1][y1] == enums.Field.BLACK:
                 captured_pawn = Position(x1, y1)
-            elif self.Previous[x2][y2] == br.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x2][y2] == br.Field.BLACK:
+            elif self.Previous[x2][y2] == enums.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x2][y2] == enums.Field.BLACK:
                 captured_pawn = Position(x2, y2)
-            elif self.Previous[x3][y3] == br.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x3][y3] == br.Field.BLACK:
+            elif self.Previous[x3][y3] == enums.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x3][y3] == enums.Field.BLACK:
                 captured_pawn = Position(x3, y3)
             else:
                 self.ErrorMessage = 'If black captured, there must be field where white disappeared'
                 return False, player
-        elif self.Current[move_to.x][move_to.y] == br.Field.BLACK_FIELD_BLUE_PAWN:
-            if self.Previous[x1][y1] == br.Field.BLACK_FIELD_RED_PAWN and self.Current[x1][y1] == br.Field.BLACK:
+        elif self.Current[move_to.x][move_to.y] == enums.Field.BLACK_FIELD_BLUE_PAWN:
+            if self.Previous[x1][y1] == enums.Field.BLACK_FIELD_RED_PAWN and self.Current[x1][y1] == enums.Field.BLACK:
                 captured_pawn = Position(x1, y1)
-            elif self.Previous[x2][y2] == br.Field.BLACK_FIELD_RED_PAWN and self.Current[x2][y2] == br.Field.BLACK:
+            elif self.Previous[x2][y2] == enums.Field.BLACK_FIELD_RED_PAWN and self.Current[x2][y2] == enums.Field.BLACK:
                 captured_pawn = Position(x2, y2)
-            elif self.Previous[x3][y3] == br.Field.BLACK_FIELD_RED_PAWN and self.Current[x3][y3] == br.Field.BLACK:
+            elif self.Previous[x3][y3] == enums.Field.BLACK_FIELD_RED_PAWN and self.Current[x3][y3] == enums.Field.BLACK:
                 captured_pawn = Position(x3, y3)
             else:
                 self.ErrorMessage = 'If white captured, there must be field where black disappeared'
@@ -180,33 +180,49 @@ class MoveValidation:
             self.ErrorMessage = 'If capturing pawn was not black and neither white, then we have serious shit going on'
             return False, player
 
-        if self.Current[move_to.x][move_to.y] == br.Field.BLACK_FIELD_RED_PAWN:
-            if self.Previous[x1][y1] == br.Field.BLACK_FIELD_RED_PAWN and self.Current[x1][y1] == br.Field.BLACK:
+        if self.Current[move_to.x][move_to.y] == enums.Field.BLACK_FIELD_RED_PAWN:
+            if self.Previous[x1][y1] == enums.Field.BLACK_FIELD_RED_PAWN and self.Current[x1][y1] == enums.Field.BLACK:
                 move_from = Position(x1, y1)
-            elif self.Previous[x2][y2] == br.Field.BLACK_FIELD_RED_PAWN and self.Current[x2][y2] == br.Field.BLACK:
+            elif self.Previous[x2][y2] == enums.Field.BLACK_FIELD_RED_PAWN and self.Current[x2][y2] == enums.Field.BLACK:
                 move_from = Position(x2, y2)
-            elif self.Previous[x3][y3] == br.Field.BLACK_FIELD_RED_PAWN and self.Current[x3][y3] == br.Field.BLACK:
+            elif self.Previous[x3][y3] == enums.Field.BLACK_FIELD_RED_PAWN and self.Current[x3][y3] == enums.Field.BLACK:
                 move_from = Position(x3, y3)
             else:
                 self.ErrorMessage = 'If black was capturing there should be filed with missing black'
                 return False, player
-        elif self.Current[move_to.x][move_to.y] == br.Field.BLACK_FIELD_BLUE_PAWN:
-            if self.Previous[x1][y1] == br.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x1][y1] == br.Field.BLACK:
+        elif self.Current[move_to.x][move_to.y] == enums.Field.BLACK_FIELD_BLUE_PAWN:
+            if self.Previous[x1][y1] == enums.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x1][y1] == enums.Field.BLACK:
                 move_from = Position(x1, y1)
-            elif self.Previous[x2][y2] == br.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x2][y2] == br.Field.BLACK:
+            elif self.Previous[x2][y2] == enums.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x2][y2] == enums.Field.BLACK:
                 move_from = Position(x2, y2)
-            elif self.Previous[x3][y3] == br.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x3][y3] == br.Field.BLACK:
+            elif self.Previous[x3][y3] == enums.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x3][y3] == enums.Field.BLACK:
                 move_from = Position(x3, y3)
             else:
                 self.ErrorMessage = 'If white was capturing there should be filed with missing white'
                 return False, player
-        #print('Move to: ', move_to.to_str(),  ' move from:', move_from.to_str(), 'captured: ', captured_pawn.to_str())
+            
+        if self.Current[move_to.x][move_to.y] == enums.Field.BLACK_FIELD_RED_PAWN:
+            # accepted moves will be: BLACK, BLACK_CAPTURE, WHITE_CAPTURE (white can blunder and miss capture - its his fault
+            if player == enums.Field.WHITE:
+                self.ErrorMessage = 'Its whites move, know your place trash!'
+                return False
+        else:
+            # accepted moves will be: WHITE, WHITE_CAPTURE, BLACK_CAPTURE (black can blunder and miss capture - its his fault
+            if player == enums.Field.BLACK:
+                self.ErrorMessage = 'Its blacks move, know your place trash!'
+                return False
 
-        if self.Current[move_to.x][move_to.y] == br.Field.BLACK_FIELD_RED_PAWN:
-            #blacks move
-            if move_from.x - move_to.x != -2:
-                self.ErrorMessage = 'Illegal capture black'
-                return False, player
+        if self.Current[move_to.x][move_to.y] == enums.Field.BLACK_FIELD_RED_PAWN:
+            # blacks move
+            if player == enums.Player.BLACK_CAPTURE:
+                # capturing behind possible
+                if move_from.x - move_to.x != 2 and move_from.x - move_to.x != -2:
+                    self.ErrorMessage = 'Illegal capture black'
+                    return False, player
+            else:
+                if move_from.x - move_to.x != -2:
+                    self.ErrorMessage = 'Illegal capture black'
+                    return False, player
             if move_from.y - move_to.y != 2 and move_from.y - move_to.y != -2:
                 self.ErrorMessage = 'Illegal move - too width'
                 return False, player
@@ -217,16 +233,22 @@ class MoveValidation:
                 self.ErrorMessage = 'Capturing illegal pawn (horizontal)'
                 return False
             self.SuccessMessage = 'Successful capture'
-            if self.there_is_possible_capture():
-                return True, enums.Player.IRRELEVANT
+            if self.there_is_possible_capture(move_to):
+                return True, enums.Player.BLACK_CAPTURE
             else:
                 return True, enums.Player.WHITE
 
-        elif self.Current[move_to.x][move_to.y] == br.Field.BLACK_FIELD_BLUE_PAWN:
-            #whites move
-            if move_from.x - move_to.x != 2:
-                self.ErrorMessage = 'Illegal capture white'
-                return False, player
+        elif self.Current[move_to.x][move_to.y] == enums.Field.BLACK_FIELD_BLUE_PAWN:
+            # whites move
+            if player == enums.Player.WHITE_CAPTURE:
+                # capturing behind possible
+                if move_from.x - move_to.x != 2 and move_from.x - move_to.x != -2:
+                    self.ErrorMessage = 'Illegal capture white'
+                    return False, player
+            else:
+                if move_from.x - move_to.x != 2:
+                    self.ErrorMessage = 'Illegal capture white'
+                    return False, player
             if move_from.y - move_to.y != 2 and move_from.y - move_to.y != -2:
                 self.ErrorMessage = 'Illegal move - too width'
                 return False, player
@@ -237,18 +259,38 @@ class MoveValidation:
                 self.ErrorMessage = 'Capturing illegal pawn (horizontal)'
                 return False, player
             self.SuccessMessage = 'Successful capture'
-            if self.there_is_possible_capture():
-                return True, enums.Player.IRRELEVANT
+            if self.there_is_possible_capture(move_to):
+                return True, enums.Player.WHITE_CAPTURE
             else:
                 return True, enums.Player.BLACK
         else:
             self.ErrorMessage = 'No one moved? Weirdo'
             return False, player
 
+    def there_is_possible_capture(self, move_to):
+        capturing_pawn_color = self.Current[move_to.x][move_to.y]
+        if capturing_pawn_color == enums.Field.BLACK_FIELD_RED_PAWN:
+            pawn_to_capture_color = enums.Field.BLACK_FIELD_BLUE_PAWN
+        else:
+            pawn_to_capture_color = enums.Field.BLACK_FIELD_RED_PAWN
 
+        x = move_to.x
+        y = move_to.y
 
-    def there_is_possible_capture(self):
-        pass
+        if x > 1 and y > 1 and self.Current[x - 1][y - 1] == pawn_to_capture_color:
+            if self.Current[x - 2][y - 2] == enums.Field.BLACK:
+                return True
+        if x > 1 and y < const.SIZE - 2 and self.Current[x - 1][y + 1] == pawn_to_capture_color:
+            if self.Current[x - 2][y + 2] == enums.Field.BLACK:
+                return True
+        if x < const.SIZE - 2 and y > 1 and self.Current[x + 1][y - 1] == pawn_to_capture_color:
+            if self.Current[x + 2][y - 2] == enums.Field.BLACK:
+                return True
+        if x < const.SIZE - 2 and y < const.SIZE - 2 and self.Current[x + 1][y + 1] == pawn_to_capture_color:
+            if self.Current[x + 2][y + 2] == enums.Field.BLACK:
+                return True
+
+        return False
 
     def validate_move(self, player):
         if len(self.Differences) == 0:
@@ -258,29 +300,7 @@ class MoveValidation:
             self.ErrorMessage = 'There is not enough differences so there was no legal moves'
             return False, player
         if len(self.Differences) == 2:
-            return self.validate_normal_move()
+            return self.validate_normal_move(player)
         if len(self.Differences) == 3:
-            return self.validate_capture_move()
-
-
-# mV = MoveValidation()
-#
-# mV.compare_boards(const.TEST_BOARD_9, const.TEST_BOARD_10)
-# print(mV.Differences, mV.validate_move(), mV.SuccessMessage if mV.validate_move() else mV.ErrorMessage)
-
-# mV.compare_boards(const.TEST_BOARD_1, const.TEST_BOARD_2)
-# print(mV.Differences, mV.validate_move())
-#
-# mV.compare_boards(const.TEST_BOARD_3, const.TEST_BOARD_4)
-# print(mV.Differences, mV.validate_move())
-#
-# mV.compare_boards(const.TEST_BOARD_5, const.TEST_BOARD_6)
-# print(mV.Differences, mV.validate_move())
-#
-# mV.compare_boards(const.TEST_BOARD_7, const.TEST_BOARD_8)
-# print(mV.Differences, mV.validate_move())
-
-#pieceCounter = mV.count_pieces()
-#print(pieceCounter.Previous, pieceCounter.Current, pieceCounter.Previous_white, pieceCounter.Previous_black, pieceCounter.Current_white, pieceCounter.Current_black)
-
+            return self.validate_capture_move(player)
 
