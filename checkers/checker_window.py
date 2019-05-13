@@ -25,7 +25,7 @@ class CheckersWindow:
     """
 
     def __init__(self):
-        self._url = "http://192.168.43.1:8080/shot.jpg"
+        self._url = "http://192.168.1.112:8080/shot.jpg"
 
         self._camera = None
         self._state = ccw.BEGIN_STATE
@@ -46,7 +46,7 @@ class CheckersWindow:
         self._clock = pg.time.Clock()
 
         self._dt = self._clock.tick(30) / 1000
-        self._frame = cv2.imread('images/chessboardClean.png')
+        self._frame = cv2.imread('chessboardClean.png')
         self._frame = cv2.resize(self._frame, (500, 500))
         self._img = self._frame
 
@@ -68,8 +68,6 @@ class CheckersWindow:
             self._dt = self._clock.tick(30) / 1000
             self.handle_events()
             self.draw()
-
-
 
     def handle_events(self):
         """
@@ -126,11 +124,10 @@ class CheckersWindow:
             self._img, self._state = start(self._frame, self._state, n=10)
             self._img = cv2.flip(self._img, 1)
 
-            if self._save:
-                self._game.append(self._state)
-            self._clock.tick(60)
-
-        # while not self._done:
+        if self._save:
+            self._game.append(self._state)
+        self._clock.tick(60)
+        #while not self._done:
 
     def save_game(self):
         """
@@ -222,13 +219,4 @@ class CheckersWindow:
         self._black_pawn = pg.surfarray.make_surface(self._black_pawn)
 
     def main(self):
-
-        run_logic_thread = threading.Thread(target=self.run_logic)
-        run_logic_thread.setDaemon(True)
-        run_logic_thread.start()
-
-        run_thread = threading.Thread(target=self.run)
-        run_thread.setDaemon(True)
-        # run_thread.start()
         self.run()
-

@@ -7,7 +7,7 @@ from statistics import mode
 import time
 from cv2 import aruco
 
-STANDARD_DEVIATION = 20
+STANDARD_DEVIATION = 30
 
 
 def detect_shape(contours):
@@ -35,7 +35,7 @@ def get_fields_as_list_of_points_list(image):
     # finding black fields
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
+    thresh = cv2.threshold(blurred, 130, 255, cv2.THRESH_BINARY_INV)[1]
     # cv2.imshow("Black fields - thresh", thresh)
     kernel = np.ones((5, 5), np.uint8)
     dilate = cv2.dilate(thresh, kernel, iterations=6)
@@ -97,8 +97,8 @@ def get_fields_as_list_of_points_list(image):
             list_of_points_in_one_row =[]
 
     for i in range(len(list_of_points_list)):
-        cv2.putText(image, str(i), (list_of_points_list[i][0], list_of_points_list[i][1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127, 127, 127),2 , cv2.LINE_AA )
-
+        cv2.putText(image, str(i), (list_of_points_list[i][0], list_of_points_list[i][1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127, 127, 127), 2 , cv2.LINE_AA)
+    print(len(list_of_points_list[5]))
     return list_of_points_list #, image
 
 
@@ -225,7 +225,7 @@ def get_chessboard_as_image(image):
     #             DLy = [np.int32(dst)[id]][0][0][1]
     #
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    thresh = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY,41,40)
+    thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 41, 40)
     aruco_dict = aruco.Dictionary_get(aruco.DICT_7X7_50)
     parameters = aruco.DetectorParameters_create()
     corners, ids, rejectedImgPoints = aruco.detectMarkers(thresh, aruco_dict, parameters=parameters)
@@ -262,7 +262,6 @@ def start(camera_image, last_result, n=5):
     n_results = [[] for i in range(64)]
     counter = 0
     number_of_fails = 0
-    # print("WE TRy to run logic")
     while counter < n:
 
         if number_of_fails > 10:
@@ -273,18 +272,25 @@ def start(camera_image, last_result, n=5):
             # Converts images from BGR to HSV
             image_HSV = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2HSV)
 
-            # Find blue pawns
-            lower_blue = np.array([100, 100, 50], dtype='uint8')
-            upper_blue = np.array([130, 255, 255], dtype='uint8')
-            mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
+            # Find blue pawns v1
+            # lower_blue = np.array([100, 100, 50], dtype='uint8')
+            # upper_blue = np.array([130, 255, 255], dtype='uint8')
+            # mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
+            # res = cv2.bitwise_and(image_HSV, image_HSV, mask=mask)
+            # blue_pawns = get_list_of_pawns_points(image=res, threshold=131)
+
+            # Find blue pawns v2
+            lower_blue = np.array([150, 0, 0], dtype='uint8')
+            upper_blue = np.array([255, 255, 255], dtype='uint8')
+            mask = cv2.inRange(image, lower_blue, upper_blue)
             res = cv2.bitwise_and(image_HSV, image_HSV, mask=mask)
-            blue_pawns = get_list_of_pawns_points(image=res, threshold=131)
+            blue_pawns = get_list_of_pawns_points(image=res, threshold=200)
 
             # Find red pawns
             lower_red1 = np.array([0, 70, 50], dtype='uint8')
             upper_red1 = np.array([10, 255, 255], dtype='uint8')
             mask1 = cv2.inRange(image_HSV, lower_red1, upper_red1)
-            lower_red2 = np.array([170, 70, 50], dtype='uint8')
+            lower_red2 = np.array([150, 70, 50], dtype='uint8')
             upper_red2 = np.array([180, 255, 255], dtype='uint8')
             mask2 = cv2.inRange(image_HSV, lower_red2, upper_red2)
             res = cv2.bitwise_or(cv2.bitwise_and(image_HSV, image_HSV, mask=mask1),
@@ -360,6 +366,95 @@ def start(camera_image, last_result, n=5):
     # cv2.imshow("Wykryte pola", img)
     # cv2.waitKey(0)
 
+def startTest():
+    url = "http://192.168.1.66:8080/shot.jpg"
+    n = 5
+    n_results = [[] for i in range(64)]
+    while True:
+        counter = 0
+        while counter < n:
+            img_resp = requests.get(url)
+            img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
+            camera_image = cv2.imdecode(img_arr, -1)
+
+            image = get_chessboard_as_image(camera_image)
+            while image is None:
+                img_resp = requests.get(url)
+                img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
+                camera_image = cv2.imdecode(img_arr, -1)
+                image = get_chessboard_as_image(camera_image)
+
+            # Converts images from BGR to HSV
+            image_HSV = cv2.cvtColor(image.copy(), cv2.COLOR_BGR2HSV)
+
+            # Find blue pawns v1
+            # lower_blue = np.array([100, 100, 50], dtype='uint8')
+            # upper_blue = np.array([130, 255, 255], dtype='uint8')
+            # mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
+            # res = cv2.bitwise_and(image_HSV, image_HSV, mask=mask)
+            # blue_pawns = get_list_of_pawns_points(image=res, threshold=131)
+
+            # Find blue pawns v2
+            lower_blue = np.array([150, 0, 0], dtype='uint8')
+            upper_blue = np.array([255, 255, 255], dtype='uint8')
+            mask = cv2.inRange(image, lower_blue, upper_blue)
+            res = cv2.bitwise_and(image_HSV, image_HSV, mask=mask)
+            blue_pawns = get_list_of_pawns_points(image=res, threshold=200)
+
+            # Find red pawns
+            lower_red1 = np.array([0, 70, 50], dtype='uint8')
+            upper_red1 = np.array([10, 255, 255], dtype='uint8')
+            mask1 = cv2.inRange(image_HSV, lower_red1, upper_red1)
+            lower_red2 = np.array([150, 70, 50], dtype='uint8')
+            upper_red2 = np.array([180, 255, 255], dtype='uint8')
+            mask2 = cv2.inRange(image_HSV, lower_red2, upper_red2)
+            res = cv2.bitwise_or(cv2.bitwise_and(image_HSV, image_HSV, mask=mask1), cv2.bitwise_and(image_HSV, image_HSV, mask=mask2))
+            red_pawns = get_list_of_pawns_points(image=res, threshold=130)
+
+            # lower_red = np.array([0, 0, 100], dtype='uint8')
+            # upper_red = np.array([255, 255, 255], dtype='uint8')
+            # mask = cv2.inRange(image, lower_red, upper_red)
+            # res = cv2.bitwise_and(image_HSV, image_HSV, mask=mask)
+            # cv2.imshow("red", res)
+            # red_pawns = get_list_of_pawns_points(image=res, threshold=170)
+
+
+            # Find fields
+            fields = get_fields_as_list_of_points_list(image)
+            if fields is None:
+                continue
+
+            info_about_each_field = get_fields_info_as_list(fields, blue_pawns, red_pawns, image)
+            for i, x in enumerate(info_about_each_field):
+                n_results[i].append(x)
+
+            if image is None:
+                counter = counter - 1
+                continue
+            counter = counter + 1
+
+            cv2.imshow("Wykryte pola", image)
+
+
+
+            if cv2.waitKey(1) == 27:
+                break
+
+        result = []
+        for each_field in n_results:
+            result.append(mode(each_field))
+
+        # # show pretty table result :)
+        # for i, x in enumerate(result):
+        #     if i % 8 == 0:
+        #         print("")
+        #     if x == Field.BLACK_FIELD_BLUE_PAWN:
+        #         print(1, end='')
+        #     elif x == Field.BLACK_FIELD_RED_PAWN:
+        #         print(2, end='')
+        #     else:
+        #         print(0, end='')
+        # print("")
 
 if __name__ == '__main__':
-    start(None)
+    startTest()
