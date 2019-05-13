@@ -205,12 +205,12 @@ class MoveValidation:
             # accepted moves will be: BLACK, BLACK_CAPTURE, WHITE_CAPTURE (white can blunder and miss capture - its his fault
             if player == enums.Field.WHITE:
                 self.ErrorMessage = 'Its whites move, know your place trash!'
-                return False
+                return False, player
         else:
             # accepted moves will be: WHITE, WHITE_CAPTURE, BLACK_CAPTURE (black can blunder and miss capture - its his fault
             if player == enums.Field.BLACK:
                 self.ErrorMessage = 'Its blacks move, know your place trash!'
-                return False
+                return False, player
 
         if self.Current[move_to.x][move_to.y] == enums.Field.BLACK_FIELD_RED_PAWN:
             # blacks move
