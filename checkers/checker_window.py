@@ -27,7 +27,7 @@ class CheckersWindow:
     """
 
     def __init__(self):
-        self._url = "http://192.168.1.112:8080/shot.jpg"
+        self._url = "http://192.168.43.1:8080/shot.jpg"
 
         self._player = Player.WHITE
         self._camera = None
@@ -52,6 +52,7 @@ class CheckersWindow:
         self._frame = cv2.imread('chessboardClean.png')
         self._frame = cv2.resize(self._frame, (500, 500))
         self._img = self._frame
+        self._img_print = self._img.copy()
 
         pg.display.set_caption("checkers")
         self.init_textures()
@@ -71,7 +72,7 @@ class CheckersWindow:
             self._dt = self._clock.tick(30) / 1000
             self.handle_events()
             self.draw()
-            # self.get_camera_frame()
+            self.get_camera_frame()
 
     def handle_events(self):
         """
@@ -125,18 +126,19 @@ class CheckersWindow:
         returns: True
         """
         while not self._done:
-            temp_old_state = self._state
-            temp_old_img = self._img
+            temp_old_state = self._state.copy()
+            temp_old_img = self._img.copy()
             self._img, self._state = start(self._frame, self._state, n=10)
             self._move_validation.compare_boards(temp_old_state, self._state)
-            temp_result,self._player = self._move_validation.validate_move(self._player)
+            temp_result, self._player = self._move_validation.validate_move(self._player)
+            print(self._player)
             if not temp_result:
-                print(self._move_validation.ErrorMessage)
-                self._img = temp_old_img
-                self._state = temp_old_state
+                print('Error!: ', self._move_validation.ErrorMessage)
+                self._state = temp_old_state.copy()
+                self._img_print = temp_old_img.copy()
             else:
-                print(self._move_validation.SuccessMessage)
-            self._img = cv2.flip(self._img, 1)
+                # self._img = cv2.flip(self._img, 1)
+                print('Success!: ', self._move_validation.SuccessMessage)
 
         if self._save:
             self._game.append(self._state)
@@ -196,7 +198,7 @@ class CheckersWindow:
             r_counter = r_counter + 1
 
         # --- drawing frame on the window
-        img = np.rot90(self._img)
+        img = np.rot90(self._img_print)
         #img = self._img
         img = pg.surfarray.make_surface(img)
         self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))

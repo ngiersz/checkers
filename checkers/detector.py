@@ -280,7 +280,7 @@ def start(camera_image, last_result, n=5):
             # blue_pawns = get_list_of_pawns_points(image=res, threshold=131)
 
             # Find blue pawns v2
-            lower_blue = np.array([150, 0, 0], dtype='uint8')
+            lower_blue = np.array([100, 0, 0], dtype='uint8')
             upper_blue = np.array([255, 255, 255], dtype='uint8')
             mask = cv2.inRange(image, lower_blue, upper_blue)
             res = cv2.bitwise_and(image_HSV, image_HSV, mask=mask)
@@ -316,7 +316,7 @@ def start(camera_image, last_result, n=5):
             #cv2.imshow("Wykryte pola", image)
 
         except Exception as e:
-            print(e)
+            # print(e)
             number_of_fails += 1
             continue
 

@@ -27,10 +27,10 @@ BLACK_PAWN = cv2.cvtColor(cv2.imread("black_pawn.png"), 3)
 FONT = pg.font.SysFont('Comic Sans MS', 32)
 NO_NAME = 'Choose Name'
 
-BEGIN_STATE = [[Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE],
+BEGIN_STATE = [[Field.BLACK, Field.WHITE, Field.BLACK_FIELD_RED_PAWN, Field.WHITE, Field.BLACK_FIELD_RED_PAWN, Field.WHITE, Field.BLACK, Field.WHITE],
                [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK],
                [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE],
-               [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK],
+               [Field.WHITE, Field.BLACK_FIELD_BLUE_PAWN, Field.WHITE, Field.BLACK_FIELD_BLUE_PAWN, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK],
                [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE],
                [Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK],
                [Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE, Field.BLACK, Field.WHITE],

@@ -101,6 +101,19 @@ class MoveValidation:
         else:
             black_move = True
 
+        if self.Current[move_to.x][move_to.y] == enums.Field.BLACK_FIELD_RED_PAWN:
+            print('RED PAWN SHOULD MOVE', self.Current[move_to.x][move_to.y])
+            # accepted moves will be: BLACK, BLACK_CAPTURE, WHITE_CAPTURE (white can blunder and miss capture - its his fault
+            if player == enums.Player.WHITE:
+                self.ErrorMessage = 'Its whites move, know your place trash!'
+                return False, player
+        else:
+            print('BLUE PAWN SHOULD MOVE', self.Current[move_to.x][move_to.y])
+            # accepted moves will be: WHITE, WHITE_CAPTURE, BLACK_CAPTURE (black can blunder and miss capture - its his fault
+            if player == enums.Player.BLACK:
+                self.ErrorMessage = 'Its blacks move, know your place trash!'
+                return False, player
+
         if self.Current[move_to.x][move_to.y] != self.Previous[move_from.x][move_from.y]:
             self.ErrorMessage = 'move finished with wrong color of pawn (how did you do that? ' \
                                 'Is that you Willy the Whistler?)'
@@ -113,6 +126,7 @@ class MoveValidation:
             if move_from.y - move_to.y != 1 and move_from.y - move_to.y != -1:
                 self.ErrorMessage = 'illegal black move (horizontal)'
                 return False, player
+            self.SuccessMessage = 'Normal move succeeded for white'
             return True, enums.Player.BLACK
 
         elif black_move:
@@ -122,6 +136,7 @@ class MoveValidation:
             if move_from.y - move_to.y != 1 and move_from.y - move_to.y != -1:
                 self.ErrorMessage = 'illegal black move (horizontal)'
                 return False, player
+            self.SuccessMessage = 'Normal move succeeded for black'
             return True, enums.Player.WHITE
 
         else:
@@ -203,12 +218,12 @@ class MoveValidation:
             
         if self.Current[move_to.x][move_to.y] == enums.Field.BLACK_FIELD_RED_PAWN:
             # accepted moves will be: BLACK, BLACK_CAPTURE, WHITE_CAPTURE (white can blunder and miss capture - its his fault
-            if player == enums.Field.WHITE:
+            if player == enums.Player.WHITE:
                 self.ErrorMessage = 'Its whites move, know your place trash!'
                 return False, player
         else:
             # accepted moves will be: WHITE, WHITE_CAPTURE, BLACK_CAPTURE (black can blunder and miss capture - its his fault
-            if player == enums.Field.BLACK:
+            if player == enums.Player.BLACK:
                 self.ErrorMessage = 'Its blacks move, know your place trash!'
                 return False, player
 
@@ -226,12 +241,12 @@ class MoveValidation:
             if move_from.y - move_to.y != 2 and move_from.y - move_to.y != -2:
                 self.ErrorMessage = 'Illegal move - too width'
                 return False, player
-            if move_from.x - captured_pawn.x != -1:
-                self.ErrorMessage = 'Capturing illegal pawn (vertical)'
-                return False, player
-            if move_from.y - captured_pawn.y != 1 and move_from.y - captured_pawn.y != -1:
-                self.ErrorMessage = 'Capturing illegal pawn (horizontal)'
-                return False
+            # if move_from.x - captured_pawn.x != -1:
+            #     self.ErrorMessage = 'Capturing illegal pawn (vertical)'
+            #     return False, player
+            # if move_from.y - captured_pawn.y != 1 and move_from.y - captured_pawn.y != -1:
+            #     self.ErrorMessage = 'Capturing illegal pawn (horizontal)'
+            #     return False, player
             self.SuccessMessage = 'Successful capture'
             if self.there_is_possible_capture(move_to):
                 return True, enums.Player.BLACK_CAPTURE
@@ -252,12 +267,12 @@ class MoveValidation:
             if move_from.y - move_to.y != 2 and move_from.y - move_to.y != -2:
                 self.ErrorMessage = 'Illegal move - too width'
                 return False, player
-            if move_from.x - captured_pawn.x != 1:
-                self.ErrorMessage = 'Capturing illegal pawn'
-                return False, player
-            if move_from.y - captured_pawn.y != 1 and move_from.y - captured_pawn.y != -1:
-                self.ErrorMessage = 'Capturing illegal pawn (horizontal)'
-                return False, player
+            # if move_from.x - captured_pawn.x != 1:
+            #     self.ErrorMessage = 'Capturing illegal pawn'
+            #     return False, player
+            # if move_from.y - captured_pawn.y != 1 and move_from.y - captured_pawn.y != -1:
+            #     self.ErrorMessage = 'Capturing illegal pawn (horizontal)'
+            #     return False, player
             self.SuccessMessage = 'Successful capture'
             if self.there_is_possible_capture(move_to):
                 return True, enums.Player.WHITE_CAPTURE
@@ -293,6 +308,7 @@ class MoveValidation:
         return False
 
     def validate_move(self, player):
+        print(self.Differences)
         if len(self.Differences) == 0:
             self.SuccessMessage = 'No differences'
             return True, player
@@ -303,4 +319,4 @@ class MoveValidation:
             return self.validate_normal_move(player)
         if len(self.Differences) == 3:
             return self.validate_capture_move(player)
-
+        return False, player
