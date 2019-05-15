@@ -40,6 +40,7 @@ class CheckersWindow:
         self.name_to_set = ccw.NO_NAME
         self._done = False
         self._save = False
+        self._reset = True
         self._all_sprites = pg.sprite.Group()
 
         self._black_field = ccc.BLACK
@@ -51,7 +52,7 @@ class CheckersWindow:
         self._dt = self._clock.tick(30) / 1000
         self._frame = cv2.imread('chessboardClean.png')
         self._frame = cv2.resize(self._frame, (500, 500))
-        self._img = self._frame
+        self._img = self._frame.copy()
         self._img_print = self._img.copy()
 
         pg.display.set_caption("checkers")
@@ -61,7 +62,15 @@ class CheckersWindow:
                                         ccw.SELECT_NAME_OFFSET_Y,
                                         ccw.SELECT_NAME_WIDTH, ccw.SELECT_NAME_HEIGHT, self.change_name, ccw.FONT,
                                         self.name_to_set, (255, 0, 0))
-        self._all_sprites.add(self.change_name_field)
+        self.save_game_button = Button(ccw.SAVE_GAME_OFFSET_X,
+                                        ccw.SAVE_GAME_OFFSET_Y,
+                                        ccw.SAVE_GAME_WIDTH, ccw.SAVE_GAME_HEIGHT, self.save_game, ccw.FONT,
+                                        "Zapisz gre", (255, 0, 0))
+        self.set_status = Button(ccw.SET_STATE_OFFSET_X,
+                                        ccw.SET_STATE_OFFSET_Y,
+                                        ccw.SET_STATE_WIDTH, ccw.SET_STATE_HEIGHT, self.reset_state, ccw.FONT,
+                                        "Zeruj stan", (255, 0, 0))
+        self._all_sprites.add(self.change_name_field, self.save_game_button, self.set_status)
 
     def run(self):
         """
@@ -91,7 +100,6 @@ class CheckersWindow:
                 if self.changing_name:
                     if event.key == pg.K_RETURN:
                         self.changing_name = False
-                        print("loog FALSE")
                     elif event.key == pg.K_BACKSPACE:
                         self.name_to_set = self.name_to_set[:-1]
                     else:
@@ -116,7 +124,8 @@ class CheckersWindow:
             img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
             self._frame = cv2.imdecode(img_arr, -1)
         except Exception as e:
-            self._frame = cv2.imread('images/chessboardPawns.png')
+            self._frame = cv2.imread('chessboardClean.png')
+            self._img = self._frame.copy()
             self._frame = cv2.resize(self._frame, (500, 500))
             print(e)
 
@@ -129,16 +138,20 @@ class CheckersWindow:
             temp_old_state = self._state.copy()
             temp_old_img = self._img.copy()
             self._img, self._state = start(self._frame, self._state, n=10)
-            self._move_validation.compare_boards(temp_old_state, self._state)
-            temp_result, self._player = self._move_validation.validate_move(self._player)
-            print(self._player)
-            if not temp_result:
-                print('Error!: ', self._move_validation.ErrorMessage)
-                self._state = temp_old_state.copy()
-                self._img_print = temp_old_img.copy()
+            if self._reset:
+                self._reset = False
             else:
-                # self._img = cv2.flip(self._img, 1)
-                print('Success!: ', self._move_validation.SuccessMessage)
+                self._move_validation.compare_boards(temp_old_state, self._state)
+                temp_result, self._player = self._move_validation.validate_move(self._player)
+                print(self._player)
+                if not temp_result:
+                    print('Error!: ', self._move_validation.ErrorMessage)
+                    self._state = temp_old_state.copy()
+                    self._img_print = temp_old_img.copy()
+                else:
+                    # self._img = cv2.flip(self._img, 1)
+                    print('Success!: ', self._move_validation.SuccessMessage)
+                    self._img_print = self._img.copy()
 
         if self._save:
             self._game.append(self._state)
@@ -151,10 +164,18 @@ class CheckersWindow:
         date has format Year-month-day_Hour-Min-Sec
         returns: True
         """
-
+        print("Zapisalem")
         file_name = 'game_{}'.format(datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
         with open(file_name, 'w') as outfile:
             json.dump(self._game, outfile)
+
+    def reset_state(self):
+        """
+        Set actual state as the right state
+        returns: True
+        """
+        self._reset = True
+        print("Zresetowalem")
 
     def draw(self):
         """
@@ -183,7 +204,7 @@ class CheckersWindow:
                                                           ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                           ccw.RECT_SIZE, ccw.RECT_SIZE])
 
-                    pg.draw.ellipse(self._screen, ccc.WHITE, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                    pg.draw.ellipse(self._screen, ccc.BLUE, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                               ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                               ccw.PAWN_SIZE, ccw.PAWN_SIZE])
                 elif field == Field.BLACK_FIELD_RED_PAWN:
@@ -191,14 +212,16 @@ class CheckersWindow:
                                                           ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                           ccw.RECT_SIZE, ccw.RECT_SIZE])
 
-                    pg.draw.ellipse(self._screen, ccc.BLACK, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                    pg.draw.ellipse(self._screen, ccc.RED, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                               ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                               ccw.PAWN_SIZE, ccw.PAWN_SIZE])
                 f_counter = f_counter + 1
             r_counter = r_counter + 1
 
         # --- drawing frame on the window
-        img = np.rot90(self._img_print)
+        # img = np.rot90(self._img_print)
+        img = cv2.flip(self._img_print, 1)
+        img = np.rot90(img)
         #img = self._img
         img = pg.surfarray.make_surface(img)
         self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))
