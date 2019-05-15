@@ -40,7 +40,7 @@ class CheckersWindow:
         self.name_to_set = ccw.NO_NAME
         self._done = False
         self._save = False
-        self._reset = True
+        self._reset = False
         self._all_sprites = pg.sprite.Group()
 
         self._black_field = ccc.BLACK
@@ -65,11 +65,11 @@ class CheckersWindow:
         self.save_game_button = Button(ccw.SAVE_GAME_OFFSET_X,
                                         ccw.SAVE_GAME_OFFSET_Y,
                                         ccw.SAVE_GAME_WIDTH, ccw.SAVE_GAME_HEIGHT, self.save_game, ccw.FONT,
-                                        "Zapisz gre", (255, 0, 0))
+                                        "Save Game", (255, 0, 0))
         self.set_status = Button(ccw.SET_STATE_OFFSET_X,
                                         ccw.SET_STATE_OFFSET_Y,
                                         ccw.SET_STATE_WIDTH, ccw.SET_STATE_HEIGHT, self.reset_state, ccw.FONT,
-                                        "Zeruj stan", (255, 0, 0))
+                                        "Reset", (255, 0, 0))
         self._all_sprites.add(self.change_name_field, self.save_game_button, self.set_status)
 
     def run(self):
@@ -125,8 +125,8 @@ class CheckersWindow:
             self._frame = cv2.imdecode(img_arr, -1)
         except Exception as e:
             self._frame = cv2.imread('chessboardClean.png')
-            self._img = self._frame.copy()
             self._frame = cv2.resize(self._frame, (500, 500))
+            self._img = self._frame.copy()
             print(e)
 
     def run_logic(self):
