@@ -4,11 +4,9 @@ import numpy as np
 from checkers.Field import Field
 import requests
 from statistics import mode
-import time
 from cv2 import aruco
-
+import operator
 STANDARD_DEVIATION = 30
-
 
 def detect_shape(contours):
     # # initialize the shape name and approximate the contour
@@ -30,8 +28,6 @@ def detect_shape(contours):
     shape = None
     area = cv2.contourArea(contours)
     approx = cv2.approxPolyDP(contours, 0.1 * cv2.arcLength(contours, True), True)
-    x = approx.ravel()[0]
-    y = approx.ravel()[1]
 
     if area > 200:
         if len(approx) == 3:
@@ -45,7 +41,7 @@ def detect_shape(contours):
 
 
 def get_fields_as_list_of_points_list(image):
-    # finding black fields
+    # find black fields
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
     thresh = cv2.threshold(blurred, 100, 255, cv2.THRESH_BINARY_INV)[1]
@@ -59,7 +55,7 @@ def get_fields_as_list_of_points_list(image):
     # contours of black fields
     contours = imutils.grab_contours(contours_temp)
 
-    # finding white fields
+    # find white fields
     image_white = cv2.bitwise_not(image)
     gray = cv2.cvtColor(image_white, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
@@ -75,7 +71,6 @@ def get_fields_as_list_of_points_list(image):
     contours = imutils.grab_contours(contours_temp) + contours
     contours.reverse()
     # check if 64 fields are detected
-    print("len: " + str(len(contours)))
     if len(contours) != 64:
         return None
 
@@ -120,34 +115,20 @@ def get_list_of_pawns_points(ori, image, threshold):
     # imgScale = 2.5
     # newX, newY = image.shape[1] * imgScale, image.shape[0] * imgScale
     # image_resized = cv2.resize(image, (int(newX), int(newY)))
-
+    # cv2.imshow("pawnsThreshBeforeErode"+str(threshold), image)
+    # cv2.waitKey(1)
     # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(image, (5, 5), 0)
     thresh = cv2.threshold(blurred, threshold, 255, cv2.THRESH_BINARY)[1]
 
-    # # cv2.imshow("pawnsThreshBeforeErode"+str(threshold), thresh)
-    # kernel = np.ones((5, 5), np.uint8)
-    # erode = cv2.erode(thresh, kernel, iterations=2)
-    # # cv2.imshow("pawnsThresh" + str(threshold) + 'erode', erode)
-    # dilate = cv2.dilate(erode, kernel, iterations=3)
-    # # cv2.imshow("pawnsThresh" + str(threshold) + 'dilate', dilate)
-
-    # kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
-    # frame = cv2.filter2D(frame, -1, kernel)
-    # Contours detection
     contours_temp, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-    # contours_temp = cv2.findContours(dilate.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # contours of black fields
-    # contours = imutils.grab_contours(contours_temp)
     contours_temp.reverse()
-    print(str(threshold) + " :" + str(len(contours_temp)))
     list_of_pawns_points = []
     list_of_kings_points = []
     for c in contours_temp:
         shape = detect_shape(c)
         if shape == 'triangle':
-            print('triangle')
             x = 0
             y = 0
             count = 0
@@ -160,8 +141,6 @@ def get_list_of_pawns_points(ori, image, threshold):
             list_of_kings_points.append([x, y])
 
         else:
-            print('circle')
-
             x = 0
             y = 0
             count = 0
@@ -246,13 +225,12 @@ def get_chessboard_as_image(image):
     return result
 
 
-# lower_blue = np.array([0, 66, 134], dtype='uint8')
-# upper_blue = np.array([180, 255, 243], dtype='uint8')
-def nothing(x):
-    # any operation
-    pass
 
+# def nothing(x):
+#     # any operation
+#     pass
 
+#
 # cv2.namedWindow("Trackbars")
 # cv2.createTrackbar("L-H", "Trackbars", 0, 180, nothing)
 # cv2.createTrackbar("L-S", "Trackbars", 66, 255, nothing)
@@ -263,93 +241,6 @@ def nothing(x):
 
 
 def start(camera_image, last_result, n=5):
-    def nothing(x):
-        # any operation
-        pass
-
-    #
-    #
-    #
-    # cv2.namedWindow("Trackbars")
-    # cv2.createTrackbar("L-H", "Trackbars", 0, 180, nothing)
-    # cv2.createTrackbar("L-S", "Trackbars", 66, 255, nothing)
-    # cv2.createTrackbar("L-V", "Trackbars", 134, 255, nothing)
-    # cv2.createTrackbar("U-H", "Trackbars", 180, 180, nothing)
-    # cv2.createTrackbar("U-S", "Trackbars", 255, 255, nothing)
-    # cv2.createTrackbar("U-V", "Trackbars", 243, 255, nothing)
-    #
-    # font = cv2.FONT_HERSHEY_COMPLEX
-    #
-    # url = "http://192.168.2.7:8080/shot.jpg"
-    #
-    # while True:
-    #     img_resp = requests.get(url)
-    #     img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
-    #     camera_image = cv2.imdecode(img_arr, -1)
-    #
-    #
-    #     image = get_chessboard_as_image(camera_image)
-    #
-    #     while image is None:
-    #         img_resp = requests.get(url)
-    #         img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
-    #         camera_image = cv2.imdecode(img_arr, -1)
-    #         # camera_image = obraz
-    #         image = camera_image
-    #         # image = get_chessboard_as_image(camera_image)
-    #
-    #     frame = image
-    #     imgScale = 2.5
-    #     newX, newY = frame.shape[1] * imgScale, frame.shape[0] * imgScale
-    #     frame = cv2.resize(frame, (int(newX), int(newY)))
-    #     # kernel = np.array([[-1, -1, -1], [-1, 9, -1], [-1, -1, -1]])
-    #     # frame = cv2.filter2D(frame, -1, kernel)
-    #
-    #
-    #     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    #
-    #     l_h = cv2.getTrackbarPos("L-H", "Trackbars")
-    #     l_s = cv2.getTrackbarPos("L-S", "Trackbars")
-    #     l_v = cv2.getTrackbarPos("L-V", "Trackbars")
-    #     u_h = cv2.getTrackbarPos("U-H", "Trackbars")
-    #     u_s = cv2.getTrackbarPos("U-S", "Trackbars")
-    #     u_v = cv2.getTrackbarPos("U-V", "Trackbars")
-    #
-    #     lower_red = np.array([l_h, l_s, l_v])
-    #     upper_red = np.array([u_h, u_s, u_v])
-    #
-    #     mask = cv2.inRange(hsv, lower_red, upper_red)
-    #     kernel = np.ones((5, 5), np.uint8)
-    #     mask = cv2.erode(mask, kernel)
-    #
-    #     # Contours detection
-    #     contours, _ = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    #
-    #     for cnt in contours:
-    #         area = cv2.contourArea(cnt)
-    #         approx = cv2.approxPolyDP(cnt, 0.02 * cv2.arcLength(cnt, True), True)
-    #         x = approx.ravel()[0]
-    #         y = approx.ravel()[1]
-    #
-    #         if area > 400:
-    #             cv2.drawContours(frame, [approx], 0, (0, 0, 0), 5)
-    #
-    #             if len(approx) == 3:
-    #                 cv2.putText(frame, "Triangle", (x, y), font, 1, (0, 0, 0))
-    #             elif len(approx) == 4:
-    #                 cv2.putText(frame, "Rectangle", (x, y), font, 1, (0, 0, 0))
-    #             else:
-    #                 cv2.putText(frame, "Circle", (x, y), font, 1, (0, 0, 0))
-    #
-    #     cv2.imshow("Frame", frame)
-    #     cv2.imshow("Mask", mask)
-    #
-    #     key = cv2.waitKey(1)
-    #     if key == 27:
-    #         break
-    #
-    # cv2.destroyAllWindows()
-
     n_results = [[] for i in range(64)]
     counter = 0
     number_of_fails = 0
@@ -367,46 +258,33 @@ def start(camera_image, last_result, n=5):
             image_resized = cv2.resize(image, (int(newX), int(newY)))
             image_HSV = cv2.cvtColor(image_resized.copy(), cv2.COLOR_BGR2HSV)
 
-            # Find blue pawns
-            # lower_blue = np.array([90, 102, 127], dtype='uint8')
-            # upper_blue = np.array([170, 255, 255], dtype='uint8')
-            # lower_blue = np.array([0, 66, 134], dtype='uint8')
-            # upper_blue = np.array([180, 255, 243], dtype='uint8')
 
-            l_h = cv2.getTrackbarPos("L-H", "Trackbars")
-            l_s = cv2.getTrackbarPos("L-S", "Trackbars")
-            l_v = cv2.getTrackbarPos("L-V", "Trackbars")
-            u_h = cv2.getTrackbarPos("U-H", "Trackbars")
-            u_s = cv2.getTrackbarPos("U-S", "Trackbars")
-            u_v = cv2.getTrackbarPos("U-V", "Trackbars")
+            # l_h = cv2.getTrackbarPos("L-H", "Trackbars")
+            # l_s = cv2.getTrackbarPos("L-S", "Trackbars")
+            # l_v = cv2.getTrackbarPos("L-V", "Trackbars")
+            # u_h = cv2.getTrackbarPos("U-H", "Trackbars")
+            # u_s = cv2.getTrackbarPos("U-S", "Trackbars")
+            # u_v = cv2.getTrackbarPos("U-V", "Trackbars")
             # lower_blue = np.array([l_h, l_s, l_v])
             # upper_blue = np.array([u_h, u_s, u_v])
-            lower_blue = np.array([90, 60, 120])
-            upper_blue = np.array([160, 255, 255])
-            mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
-            kernel = np.ones((5, 5), np.uint8)
-            mask = cv2.erode(mask, kernel)
-            # res = cv2.bitwise_and(image_HSV, image_HSV, mask=mask)
 
-            blue_pawns, blue_kings = get_list_of_pawns_points(ori=image, image=mask, threshold=131)
-            # Find red pawns
-            # lower_red1 = np.array([0, 70, 50], dtype='uint8')
-            # upper_red1 = np.array([10, 255, 255], dtype='uint8')
-            # mask1 = cv2.inRange(image_HSV, lower_red1, upper_red1)
-            # lower_red2 = np.array([170, 70, 50], dtype='uint8')
-            # upper_red2 = np.array([180, 255, 255], dtype='uint8')
-            # mask2 = cv2.inRange(image_HSV, lower_red2, upper_red2)
-            # res = cv2.bitwise_or(cv2.bitwise_and(image_HSV, image_HSV, mask=mask1), cv2.bitwise_and(image_HSV, image_HSV, mask=mask2))
-            # lower_red = np.array([l_h, l_s, l_v])
-            # upper_red = np.array([u_h, u_s, u_v])
-            lower_red = np.array([0, 70, 130])
-            upper_red = np.array([70, 255, 255])
-            mask = cv2.inRange(image_HSV, lower_red, upper_red)
+            # Find blue pawns
+            lower_blue = np.array([30, 90, 110])
+            upper_blue = np.array([130, 255, 255])
+            blue_mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
             kernel = np.ones((5, 5), np.uint8)
-            mask = cv2.erode(mask, kernel)
-            # res = cv2.bitwise_and(image_HSV
+            blue_mask = cv2.erode(blue_mask, kernel)
+            blue_pawns, blue_kings = get_list_of_pawns_points(ori=image, image=blue_mask, threshold=131)
 
-            red_pawns, red_kings = get_list_of_pawns_points(ori=image, image=mask, threshold=100)
+            # # Find red pawns
+            lower_red = np.array([0, 100, 130])
+            upper_red = np.array([180, 255, 255])
+            red_and_blue_mask = cv2.inRange(image_HSV, lower_red, upper_red)
+            kernel = np.ones((5, 5), np.uint8)
+            red_and_blue_mask = cv2.erode(red_and_blue_mask, kernel, iterations=1)
+            red_mask = cv2.bitwise_and(red_and_blue_mask, cv2.bitwise_not(blue_mask))
+            red_pawns, red_kings = get_list_of_pawns_points(ori=image, image=red_mask, threshold=100)
+
             # Find fields
             fields = get_fields_as_list_of_points_list(image)
             if fields is None:
@@ -427,10 +305,7 @@ def start(camera_image, last_result, n=5):
                 continue
             counter = counter + 1
 
-            cv2.imshow("Wykryte pola", image)
-
         except Exception as e:
-            # print(e)
             number_of_fails += 1
             continue
 
@@ -439,16 +314,27 @@ def start(camera_image, last_result, n=5):
 
     result = []
     temp_result = []
-    result_counter = 0
 
-    for each_field in n_results:
-        if result_counter == 8:
-            result_counter = 0
+    for i, each_field in enumerate(n_results):
+        if i % 8 == 0 and i != 0:
             result.append(temp_result)
             temp_result = []
-        temp_result.append(mode(each_field))
-        result_counter += 1
+        try:
+            temp_result.append(mode(each_field))
+        except:
+            unique_values = set(each_field)
+            value_count_dict = dict.fromkeys(unique_values, 0)
+            for value in each_field:
+                value_count_dict[value] += 1
+            temp_result.append(max(value_count_dict.items(), key=operator.itemgetter(1))[0])
+
     result.append(temp_result)
+
+    # check result
+    # for x in result:
+    #     for y in x:
+    #         print(y, end='; ')
+    #     print('\n')
     # image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
     return image, result
 
@@ -488,6 +374,7 @@ def startTest():
             res = cv2.bitwise_and(image_HSV, image_HSV, mask=mask)
             blue_pawns = get_list_of_pawns_points(image=res, threshold=200)
 
+
             # Find red pawns
             lower_red1 = np.array([0, 70, 50], dtype='uint8')
             upper_red1 = np.array([10, 255, 255], dtype='uint8')
@@ -497,6 +384,7 @@ def startTest():
             mask2 = cv2.inRange(image_HSV, lower_red2, upper_red2)
             res = cv2.bitwise_or(cv2.bitwise_and(image_HSV, image_HSV, mask=mask1),
                                  cv2.bitwise_and(image_HSV, image_HSV, mask=mask2))
+
             red_pawns = get_list_of_pawns_points(image=res, threshold=130)
 
             # lower_red = np.array([0, 0, 100], dtype='uint8')
