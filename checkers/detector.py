@@ -226,18 +226,18 @@ def get_chessboard_as_image(image):
 
 
 
-# def nothing(x):
-#     # any operation
-#     pass
+def nothing(x):
+    # any operation
+    pass
 
-#
-# cv2.namedWindow("Trackbars")
-# cv2.createTrackbar("L-H", "Trackbars", 0, 180, nothing)
-# cv2.createTrackbar("L-S", "Trackbars", 66, 255, nothing)
-# cv2.createTrackbar("L-V", "Trackbars", 134, 255, nothing)
-# cv2.createTrackbar("U-H", "Trackbars", 180, 180, nothing)
-# cv2.createTrackbar("U-S", "Trackbars", 255, 255, nothing)
-# cv2.createTrackbar("U-V", "Trackbars", 243, 255, nothing)
+
+cv2.namedWindow("Trackbars")
+cv2.createTrackbar("L-H", "Trackbars", 0, 180, nothing)
+cv2.createTrackbar("L-S", "Trackbars", 66, 255, nothing)
+cv2.createTrackbar("L-V", "Trackbars", 134, 255, nothing)
+cv2.createTrackbar("U-H", "Trackbars", 180, 180, nothing)
+cv2.createTrackbar("U-S", "Trackbars", 255, 255, nothing)
+cv2.createTrackbar("U-V", "Trackbars", 243, 255, nothing)
 
 
 def start(camera_image, last_result, n=5):
@@ -259,25 +259,29 @@ def start(camera_image, last_result, n=5):
             image_HSV = cv2.cvtColor(image_resized.copy(), cv2.COLOR_BGR2HSV)
 
 
-            # l_h = cv2.getTrackbarPos("L-H", "Trackbars")
-            # l_s = cv2.getTrackbarPos("L-S", "Trackbars")
-            # l_v = cv2.getTrackbarPos("L-V", "Trackbars")
-            # u_h = cv2.getTrackbarPos("U-H", "Trackbars")
-            # u_s = cv2.getTrackbarPos("U-S", "Trackbars")
-            # u_v = cv2.getTrackbarPos("U-V", "Trackbars")
+            l_h = cv2.getTrackbarPos("L-H", "Trackbars")
+            l_s = cv2.getTrackbarPos("L-S", "Trackbars")
+            l_v = cv2.getTrackbarPos("L-V", "Trackbars")
+            u_h = cv2.getTrackbarPos("U-H", "Trackbars")
+            u_s = cv2.getTrackbarPos("U-S", "Trackbars")
+            u_v = cv2.getTrackbarPos("U-V", "Trackbars")
             # lower_blue = np.array([l_h, l_s, l_v])
             # upper_blue = np.array([u_h, u_s, u_v])
 
             # Find blue pawns
-            lower_blue = np.array([30, 90, 110])
-            upper_blue = np.array([130, 255, 255])
+            # lower_blue = np.array([30, 90, 110])
+            # upper_blue = np.array([130, 255, 255])
+            lower_blue = np.array([40, 40, 120])
+            upper_blue = np.array([150, 255, 255])
+            # lower_blue = np.array([l_h, l_s, l_v])
+            # upper_blue = np.array([u_h, u_s, u_v])
             blue_mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
             kernel = np.ones((5, 5), np.uint8)
             blue_mask = cv2.erode(blue_mask, kernel)
             blue_pawns, blue_kings = get_list_of_pawns_points(ori=image, image=blue_mask, threshold=131)
 
             # # Find red pawns
-            lower_red = np.array([0, 100, 130])
+            lower_red = np.array([0, 60, 130])
             upper_red = np.array([180, 255, 255])
             red_and_blue_mask = cv2.inRange(image_HSV, lower_red, upper_red)
             kernel = np.ones((5, 5), np.uint8)
