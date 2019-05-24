@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import requests
 import time
-import eventlet
+# import eventlet
 import threading
 from checkers.Field import Field
 from checkers.Field import Player
