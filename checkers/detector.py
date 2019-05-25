@@ -111,7 +111,7 @@ def get_fields_as_list_of_points_list(image):
     return list_of_points_list  # , image
 
 
-def get_list_of_pawns_points(ori, image, threshold):
+def get_list_of_pawns_points(image, threshold):
     # imgScale = 2.5
     # newX, newY = image.shape[1] * imgScale, image.shape[0] * imgScale
     # image_resized = cv2.resize(image, (int(newX), int(newY)))
@@ -271,23 +271,38 @@ def start(camera_image, last_result, n=5):
             # Find blue pawns
             # lower_blue = np.array([30, 90, 110])
             # upper_blue = np.array([130, 255, 255])
-            lower_blue = np.array([40, 40, 120])
-            upper_blue = np.array([150, 255, 255])
+            # noc
+            # lower_blue = np.array([40, 40, 120])
+            # upper_blue = np.array([150, 255, 255])
+            # dzien
+            lower_blue = np.array([60, 95, 120]) #20-90, 70-120, 100-140
+            upper_blue = np.array([145, 255, 255]) #120-170
             # lower_blue = np.array([l_h, l_s, l_v])
             # upper_blue = np.array([u_h, u_s, u_v])
             blue_mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
             kernel = np.ones((5, 5), np.uint8)
-            blue_mask = cv2.erode(blue_mask, kernel)
-            blue_pawns, blue_kings = get_list_of_pawns_points(ori=image, image=blue_mask, threshold=131)
+            # cv2.imshow("blue przed", blue_mask)
+            # cv2.waitKey(1)
+            blue_mask = cv2.erode(blue_mask, kernel, iterations=1)
+            blue_mask = cv2.dilate(blue_mask, kernel, iterations=2)
+
+            blue_pawns, blue_kings = get_list_of_pawns_points(image=blue_mask, threshold=131)
 
             # # Find red pawns
-            lower_red = np.array([0, 60, 130])
+            lower_red = np.array([0, 100, 130])
             upper_red = np.array([180, 255, 255])
+            # lower_red = np.array([l_h, l_s, l_v])
+            # upper_red = np.array([u_h, u_s, u_v])
             red_and_blue_mask = cv2.inRange(image_HSV, lower_red, upper_red)
             kernel = np.ones((5, 5), np.uint8)
+            # cv2.imshow("red przed", red_and_blue_mask)
+            # cv2.waitKey(1)
             red_and_blue_mask = cv2.erode(red_and_blue_mask, kernel, iterations=1)
+            red_and_blue_mask = cv2.dilate(red_and_blue_mask, kernel, iterations=2)
+            # cv2.imshow("red po", red_and_blue_mask)
+            # cv2.waitKey(1)
             red_mask = cv2.bitwise_and(red_and_blue_mask, cv2.bitwise_not(blue_mask))
-            red_pawns, red_kings = get_list_of_pawns_points(ori=image, image=red_mask, threshold=100)
+            red_pawns, red_kings = get_list_of_pawns_points(image=red_mask, threshold=100)
 
             # Find fields
             fields = get_fields_as_list_of_points_list(image)
@@ -340,6 +355,7 @@ def start(camera_image, last_result, n=5):
     #         print(y, end='; ')
     #     print('\n')
     # image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
+
     return image, result
 
 
