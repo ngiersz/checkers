@@ -29,13 +29,14 @@ def detect_shape(contours):
     area = cv2.contourArea(contours)
     approx = cv2.approxPolyDP(contours, 0.1 * cv2.arcLength(contours, True), True)
 
-    if area > 200:
-        if len(approx) == 3:
-            shape = 'triangle'
-        elif len(approx) == 4:
-            shape = 'square'
-        else:
-            shape = 'circle'
+    # if area > 200:
+    if len(approx) == 4:
+        shape = 'square'
+    elif len(approx) == 3:
+        shape = 'triangle'
+    else:
+        shape = 'circle'
+
     # return the name of the shape
     return shape
 
@@ -112,13 +113,13 @@ def get_fields_as_list_of_points_list(image):
 
 
 def get_list_of_pawns_points(image, threshold):
-    # imgScale = 2.5
-    # newX, newY = image.shape[1] * imgScale, image.shape[0] * imgScale
-    # image_resized = cv2.resize(image, (int(newX), int(newY)))
-    # cv2.imshow("pawnsThreshBeforeErode"+str(threshold), image)
+    imgScale = 0.4
+    newX, newY = image.shape[1] * imgScale, image.shape[0] * imgScale
+    image_resized = cv2.resize(image, (int(newX), int(newY)))
+    # cv2.imshow("pawnsThreshBeforeErode"+str(threshold), image_resized)
     # cv2.waitKey(1)
     # gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    blurred = cv2.GaussianBlur(image, (5, 5), 0)
+    blurred = cv2.GaussianBlur(image_resized, (5, 5), 0)
     thresh = cv2.threshold(blurred, threshold, 255, cv2.THRESH_BINARY)[1]
 
     contours_temp, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -136,10 +137,9 @@ def get_list_of_pawns_points(image, threshold):
                 x = x + t[0][0]
                 y = y + t[0][1]
                 count = count + 1
-            x = int(int(x / count) / 2.5)
-            y = int(int(y / count) / 2.5)
+            x = int(int(x / count))
+            y = int(int(y / count) )
             list_of_kings_points.append([x, y])
-
         else:
             x = 0
             y = 0
@@ -148,8 +148,8 @@ def get_list_of_pawns_points(image, threshold):
                 x = x + t[0][0]
                 y = y + t[0][1]
                 count = count + 1
-            x = int(int(x / count) / 2.5)
-            y = int(int(y / count) / 2.5)
+            x = int(int(x / count))
+            y = int(int(y / count))
             list_of_pawns_points.append([x, y])
 
     return list_of_pawns_points, list_of_kings_points
@@ -285,7 +285,8 @@ def start(camera_image, last_result, n=5):
             # cv2.waitKey(1)
             blue_mask = cv2.erode(blue_mask, kernel, iterations=1)
             blue_mask = cv2.dilate(blue_mask, kernel, iterations=2)
-
+            cv2.imshow("blue po", blue_mask)
+            cv2.waitKey(1)
             blue_pawns, blue_kings = get_list_of_pawns_points(image=blue_mask, threshold=131)
 
             # # Find red pawns
@@ -315,6 +316,9 @@ def start(camera_image, last_result, n=5):
                                                             list_of_blue_kings_points=blue_kings,
                                                             list_of_red_pawns_points=red_pawns,
                                                             list_of_red_kings_points=red_kings)
+
+            cv2.imshow("plansza", image)
+            cv2.waitKey(1)
             for i, x in enumerate(info_about_each_field):
                 n_results[i].append(x)
 
