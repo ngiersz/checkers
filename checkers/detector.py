@@ -224,20 +224,20 @@ def get_chessboard_as_image(image):
     result = cv2.warpPerspective(image, M, (500, 500))
     return result
 
+#
+#
+# def nothing(x):
+#     # any operation
+#     pass
 
 
-def nothing(x):
-    # any operation
-    pass
-
-
-cv2.namedWindow("Trackbars")
-cv2.createTrackbar("L-H", "Trackbars", 0, 180, nothing)
-cv2.createTrackbar("L-S", "Trackbars", 66, 255, nothing)
-cv2.createTrackbar("L-V", "Trackbars", 134, 255, nothing)
-cv2.createTrackbar("U-H", "Trackbars", 180, 180, nothing)
-cv2.createTrackbar("U-S", "Trackbars", 255, 255, nothing)
-cv2.createTrackbar("U-V", "Trackbars", 243, 255, nothing)
+# cv2.namedWindow("Trackbars")
+# cv2.createTrackbar("L-H", "Trackbars", 0, 180, nothing)
+# cv2.createTrackbar("L-S", "Trackbars", 66, 255, nothing)
+# cv2.createTrackbar("L-V", "Trackbars", 134, 255, nothing)
+# cv2.createTrackbar("U-H", "Trackbars", 180, 180, nothing)
+# cv2.createTrackbar("U-S", "Trackbars", 255, 255, nothing)
+# cv2.createTrackbar("U-V", "Trackbars", 243, 255, nothing)
 
 
 def start(camera_image, last_result, n=5):
@@ -285,8 +285,8 @@ def start(camera_image, last_result, n=5):
             # cv2.waitKey(1)
             blue_mask = cv2.erode(blue_mask, kernel, iterations=1)
             blue_mask = cv2.dilate(blue_mask, kernel, iterations=2)
-            cv2.imshow("blue po", blue_mask)
-            cv2.waitKey(1)
+            # cv2.imshow("blue po", blue_mask)
+            # cv2.waitKey(1)
             blue_pawns, blue_kings = get_list_of_pawns_points(image=blue_mask, threshold=131)
 
             # # Find red pawns
@@ -316,9 +316,9 @@ def start(camera_image, last_result, n=5):
                                                             list_of_blue_kings_points=blue_kings,
                                                             list_of_red_pawns_points=red_pawns,
                                                             list_of_red_kings_points=red_kings)
-
-            cv2.imshow("plansza", image)
-            cv2.waitKey(1)
+            #
+            # cv2.imshow("plansza", image)
+            # cv2.waitKey(1)
             for i, x in enumerate(info_about_each_field):
                 n_results[i].append(x)
 
