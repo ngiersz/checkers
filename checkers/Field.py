@@ -6,8 +6,8 @@ class Field(Enum):
     BLACK = 1
     BLACK_FIELD_BLUE_PAWN = 2
     BLACK_FIELD_RED_PAWN = 3
-    BLACK_FIELD_BLUE_KING = 4
-    BLACK_FIELD_RED_KING = 5
+    BLACK_FIELD_BLUE_QUEEN = 4
+    BLACK_FIELD_RED_QUEEN = 5
 
 
 class Player(Enum):

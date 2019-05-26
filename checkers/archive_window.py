@@ -5,7 +5,8 @@ import glob
 import json
 import checkers.configs.config_archive_window as caw
 import checkers.configs.config_colors as ccc
-
+import checkers.utils as utils
+from checkers.Field import Field
 from checkers.text_field import TextField
 from checkers.button import Button
 
@@ -128,28 +129,44 @@ class ArchiveWindow:
         for row in self._state:
             f_counter = 0
             for field in row:
-                if field == 0:
+                if field == Field.BLACK:
                     self._screen.blit(self._black_field, [caw.RECT_OFFSET_X + (caw.RECT_SIZE * f_counter),
                                                           caw.RECT_OFFSET_Y + r_counter * caw.RECT_SIZE,
                                                           caw.RECT_SIZE, caw.RECT_SIZE])
-                elif field == 1:
+                elif field == Field.WHITE:
                     self._screen.blit(self._white_field, [caw.RECT_OFFSET_X + (caw.RECT_SIZE * f_counter),
                                                           caw.RECT_OFFSET_Y + r_counter * caw.RECT_SIZE,
                                                           caw.RECT_SIZE, caw.RECT_SIZE])
-                elif field == 2:
+                elif field == Field.BLACK_FIELD_BLUE_PAWN:
                     self._screen.blit(self._black_field, [caw.RECT_OFFSET_X + (caw.RECT_SIZE * f_counter),
                                                           caw.RECT_OFFSET_Y + r_counter * caw.RECT_SIZE,
                                                           caw.RECT_SIZE, caw.RECT_SIZE])
 
-                    pg.draw.ellipse(self._screen, ccc.WHITE, [caw.PAWN_OFFSET_X + (caw.RECT_SIZE * f_counter),
+                    pg.draw.ellipse(self._screen, ccc.BLUE, [caw.PAWN_OFFSET_X + (caw.RECT_SIZE * f_counter),
                                                               caw.PAWN_OFFSET_Y + r_counter * caw.RECT_SIZE,
                                                               caw.PAWN_SIZE, caw.PAWN_SIZE])
-                elif field == 3:
+                elif field == Field.BLACK_FIELD_RED_PAWN:
                     self._screen.blit(self._black_field, [caw.RECT_OFFSET_X + (caw.RECT_SIZE * f_counter),
                                                           caw.RECT_OFFSET_Y + r_counter * caw.RECT_SIZE,
                                                           caw.RECT_SIZE, caw.RECT_SIZE])
 
-                    pg.draw.ellipse(self._screen, ccc.BLACK, [caw.PAWN_OFFSET_X + (caw.RECT_SIZE * f_counter),
+                    pg.draw.ellipse(self._screen, ccc.RED, [caw.PAWN_OFFSET_X + (caw.RECT_SIZE * f_counter),
+                                                              caw.PAWN_OFFSET_Y + r_counter * caw.RECT_SIZE,
+                                                              caw.PAWN_SIZE, caw.PAWN_SIZE])
+                elif field == Field.BLACK_FIELD_BLUE_KING:
+                    self._screen.blit(self._black_field, [caw.RECT_OFFSET_X + (caw.RECT_SIZE * f_counter),
+                                                          caw.RECT_OFFSET_Y + r_counter * caw.RECT_SIZE,
+                                                          caw.RECT_SIZE, caw.RECT_SIZE])
+
+                    pg.draw.ellipse(self._screen, ccc.YELLOW, [caw.PAWN_OFFSET_X + (caw.RECT_SIZE * f_counter),
+                                                              caw.PAWN_OFFSET_Y + r_counter * caw.RECT_SIZE,
+                                                              caw.PAWN_SIZE, caw.PAWN_SIZE])
+                elif field == Field.BLACK_FIELD_RED_KING:
+                    self._screen.blit(self._black_field, [caw.RECT_OFFSET_X + (caw.RECT_SIZE * f_counter),
+                                                          caw.RECT_OFFSET_Y + r_counter * caw.RECT_SIZE,
+                                                          caw.RECT_SIZE, caw.RECT_SIZE])
+
+                    pg.draw.ellipse(self._screen, ccc.GRAY, [caw.PAWN_OFFSET_X + (caw.RECT_SIZE * f_counter),
                                                               caw.PAWN_OFFSET_Y + r_counter * caw.RECT_SIZE,
                                                               caw.PAWN_SIZE, caw.PAWN_SIZE])
                 f_counter = f_counter + 1
@@ -167,7 +184,7 @@ class ArchiveWindow:
 
     def load_file_names(self):
         self._files = []
-        for file in glob.glob("games_archive/game*"):
+        for file in glob.glob("games_archive/*"):
             self._files.append(file)
         if len(self._files) == 0:
             self._files.append(self.no_games_saved)
@@ -182,7 +199,8 @@ class ArchiveWindow:
             j_tab2 = json.load(infile)
         self.selected_game_info.set_text(os.path.basename(file_name))
         j_tab2_dump = json.dumps(j_tab2)
-        self._game = json.loads(j_tab2_dump)
+        game = json.loads(j_tab2_dump)
+        self._game = utils.int_to_enum_game(game)
         self.moves_number = len(self._game)
 
     def change_state(self):
