@@ -390,10 +390,22 @@ class MoveValidation:
 
         return False
 
+    def validate_pawn_promotion(self, player):
+        x = self.Differences[0][0]
+        y = self.Differences[0][1]
+        if self.Previous[x][y] == enums.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x][y] == enums.Field.BLACK_FIELD_BLUE_QUEEN:
+            return True, player
+        if self.Previous[x][y] == enums.Field.BLACK_FIELD_RED_PAWN and self.Current[x][y] == enums.Field.BLACK_FIELD_RED_QUEEN:
+            return True, player
+        self.ErrorMessage = 'One difference on board and not a pawn promotion'
+        return False
+
     def validate_move(self, player):
         if len(self.Differences) == 0:
             self.SuccessMessage = 'No differences'
             return True, player
+        if len(self.Differences) == 1:
+            return self.validate_pawn_promotion(player)
         if len(self.Differences) < 2:
             self.ErrorMessage = 'There is not enough differences so there was no legal moves'
             return False, player
