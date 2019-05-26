@@ -15,6 +15,7 @@ import checkers.configs.config_buttons as cb
 from checkers.button import Button
 from checkers.detector import start
 from checkers.move_validation import MoveValidation
+import checkers.utils as utils
 
 
 class CheckersWindow:
@@ -120,13 +121,13 @@ class CheckersWindow:
         returns: True
         """
         try:
-            img_resp = requests.get(self._url, verify=False, timeout=0.2)
+            img_resp = requests.get(self._url, verify=False, timeout=0.1)
             img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
             self._frame = cv2.imdecode(img_arr, -1)
         except Exception as e:
-            self._frame = cv2.imread('chessboardClean.png')
-            self._frame = cv2.resize(self._frame, (500, 500))
-            self._img = self._frame.copy()
+            # self._frame = cv2.imread('chessboardClean.png')
+            # self._frame = cv2.resize(self._frame, (500, 500))
+            # self._img = self._frame.copy()
             print(e)
 
     def run_logic(self):
@@ -139,6 +140,7 @@ class CheckersWindow:
             temp_old_img = self._img.copy()
             self._img, self._state = start(self._frame, self._state, n=10)
             if self._reset:
+                self._game = self._state.copy()
                 self._reset = False
             else:
                 self._move_validation.compare_boards(temp_old_state, self._state)
@@ -153,8 +155,13 @@ class CheckersWindow:
                     print('Success!: ', self._move_validation.SuccessMessage)
                     self._img_print = self._img.copy()
 
+                    if "No differences" not in self._move_validation.SuccessMessage:
+                        self._save = True
+
         if self._save:
             self._game.append(self._state)
+            self._save = False
+
         self._clock.tick(60)
         #while not self._done:
 
@@ -165,9 +172,13 @@ class CheckersWindow:
         returns: True
         """
         print("Zapisalem")
-        file_name = 'game_{}'.format(datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+        game = utils.enum_to_int_game(self._game)
+        if self.name_to_set is not ccw.NO_NAME:
+            file_name = 'games_archive/{}'.format(self.name_to_set)
+        else:
+            file_name = 'games_archive/game_{}'.format(datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
         with open(file_name, 'w') as outfile:
-            json.dump(self._game, outfile)
+            json.dump(game, outfile)
 
     def reset_state(self):
         """
@@ -215,6 +226,23 @@ class CheckersWindow:
                     pg.draw.ellipse(self._screen, ccc.RED, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                               ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                               ccw.PAWN_SIZE, ccw.PAWN_SIZE])
+                elif field == Field.BLACK_FIELD_BLUE_KING:
+                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+
+                    pg.draw.ellipse(self._screen, ccc.YELLOW, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                              ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                              ccw.PAWN_SIZE, ccw.PAWN_SIZE])
+                elif field == Field.BLACK_FIELD_RED_KING:
+                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+
+                    pg.draw.ellipse(self._screen, ccc.GRAY, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
+                                                              ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
+                                                              ccw.PAWN_SIZE, ccw.PAWN_SIZE])
+
                 f_counter = f_counter + 1
             r_counter = r_counter + 1
 
