@@ -153,7 +153,7 @@ class ArchiveWindow:
                     pg.draw.ellipse(self._screen, ccc.RED, [caw.PAWN_OFFSET_X + (caw.RECT_SIZE * f_counter),
                                                               caw.PAWN_OFFSET_Y + r_counter * caw.RECT_SIZE,
                                                               caw.PAWN_SIZE, caw.PAWN_SIZE])
-                elif field == Field.BLACK_FIELD_BLUE_KING:
+                elif field == Field.BLACK_FIELD_BLUE_QUEEN:
                     self._screen.blit(self._black_field, [caw.RECT_OFFSET_X + (caw.RECT_SIZE * f_counter),
                                                           caw.RECT_OFFSET_Y + r_counter * caw.RECT_SIZE,
                                                           caw.RECT_SIZE, caw.RECT_SIZE])
@@ -161,7 +161,7 @@ class ArchiveWindow:
                     pg.draw.ellipse(self._screen, ccc.YELLOW, [caw.PAWN_OFFSET_X + (caw.RECT_SIZE * f_counter),
                                                               caw.PAWN_OFFSET_Y + r_counter * caw.RECT_SIZE,
                                                               caw.PAWN_SIZE, caw.PAWN_SIZE])
-                elif field == Field.BLACK_FIELD_RED_KING:
+                elif field == Field.BLACK_FIELD_RED_QUEEN:
                     self._screen.blit(self._black_field, [caw.RECT_OFFSET_X + (caw.RECT_SIZE * f_counter),
                                                           caw.RECT_OFFSET_Y + r_counter * caw.RECT_SIZE,
                                                           caw.RECT_SIZE, caw.RECT_SIZE])

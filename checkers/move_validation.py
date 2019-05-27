@@ -101,6 +101,15 @@ class MoveValidation:
         else:
             black_move = True
 
+        if white_move:
+            if player == enums.Player.BLACK:
+                self.ErrorMessage = 'Its black turn now! White cannot move'
+                return False, player
+        else:
+            if player == enums.Player.WHITE:
+                self.ErrorMessage = 'Its white turn now! Black cannot move'
+                return False, player
+
         if self.Current[move_to.x][move_to.y] != self.Previous[move_from.x][move_from.y]:
             self.ErrorMessage = 'move finished with wrong color of pawn (how did you do that? ' \
                                 'Is that you Willy the Whistler?)'
@@ -119,7 +128,7 @@ class MoveValidation:
             if pieces_between_coords != 0:
                 self.ErrorMessage = 'There was at least one pawn or queen on queens way - ' \
                                     'its not capture because no pawn disappeared'
-                return False
+                return False, player
 
             if white_move:
                 return True, enums.Player.BLACK
@@ -287,7 +296,7 @@ class MoveValidation:
                 return False, player
             if move_from.y - captured_pawn.y != 1 and move_from.y - captured_pawn.y != -1:
                 self.ErrorMessage = 'Capturing illegal pawn (horizontal)'
-                return False
+                return False. player
             self.SuccessMessage = 'Successful capture'
             if self.there_is_possible_capture(move_to):
                 return True, enums.Player.BLACK_CAPTURE

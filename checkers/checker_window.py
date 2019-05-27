@@ -34,7 +34,8 @@ class CheckersWindow:
         self._camera = None
         self._state = ccw.BEGIN_STATE
         self._move_validation = MoveValidation()
-        self._game = [self._state]
+        self._game = []
+        self._game.append(self._state)
 
         self._screen = pg.display.set_mode(ccw.SIZE, pg.FULLSCREEN)
         self.changing_name = False
@@ -140,7 +141,8 @@ class CheckersWindow:
             temp_old_img = self._img.copy()
             self._img, self._state = start(self._frame, self._state, n=10)
             if self._reset:
-                self._game = self._state.copy()
+                self._game = []
+                self._game.append(self._state.copy())
                 self._reset = False
             else:
                 self._move_validation.compare_boards(temp_old_state, self._state)
@@ -157,10 +159,9 @@ class CheckersWindow:
 
                     if "No differences" not in self._move_validation.SuccessMessage:
                         self._save = True
-
-        if self._save:
-            self._game.append(self._state)
-            self._save = False
+            if self._save:
+                self._game.append(self._state)
+                self._save = False
 
         self._clock.tick(60)
         #while not self._done:
@@ -172,6 +173,7 @@ class CheckersWindow:
         returns: True
         """
         print("Zapisalem")
+        print(self._game)
         game = utils.enum_to_int_game(self._game)
         if self.name_to_set is not ccw.NO_NAME:
             file_name = 'games_archive/{}'.format(self.name_to_set)
@@ -226,7 +228,7 @@ class CheckersWindow:
                     pg.draw.ellipse(self._screen, ccc.RED, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                               ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                               ccw.PAWN_SIZE, ccw.PAWN_SIZE])
-                elif field == Field.BLACK_FIELD_BLUE_KING:
+                elif field == Field.BLACK_FIELD_BLUE_QUEEN:
                     self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                           ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                           ccw.RECT_SIZE, ccw.RECT_SIZE])
@@ -234,7 +236,7 @@ class CheckersWindow:
                     pg.draw.ellipse(self._screen, ccc.YELLOW, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                               ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                               ccw.PAWN_SIZE, ccw.PAWN_SIZE])
-                elif field == Field.BLACK_FIELD_RED_KING:
+                elif field == Field.BLACK_FIELD_RED_QUEEN:
                     self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
                                                           ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
                                                           ccw.RECT_SIZE, ccw.RECT_SIZE])

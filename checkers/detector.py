@@ -126,7 +126,7 @@ def get_list_of_pawns_points(image, threshold):
 
     contours_temp.reverse()
     list_of_pawns_points = []
-    list_of_kings_points = []
+    list_of_queens_points = []
     for c in contours_temp:
         shape = detect_shape(c)
         if shape == 'triangle':
@@ -139,7 +139,7 @@ def get_list_of_pawns_points(image, threshold):
                 count = count + 1
             x = int(int(x / count))
             y = int(int(y / count) )
-            list_of_kings_points.append([x, y])
+            list_of_queens_points.append([x, y])
         else:
             x = 0
             y = 0
@@ -152,11 +152,11 @@ def get_list_of_pawns_points(image, threshold):
             y = int(int(y / count))
             list_of_pawns_points.append([x, y])
 
-    return list_of_pawns_points, list_of_kings_points
+    return list_of_pawns_points, list_of_queens_points
 
 
-def get_fields_info_as_list(list_of_fields_points, list_of_blue_pawns_points, list_of_blue_kings_points,
-                            list_of_red_pawns_points, list_of_red_kings_points, image):
+def get_fields_info_as_list(list_of_fields_points, list_of_blue_pawns_points, list_of_blue_queens_points,
+                            list_of_red_pawns_points, list_of_red_queens_points, image):
     # initialize list with empty black and white fields
     result = []
     counter = 0
@@ -169,24 +169,24 @@ def get_fields_info_as_list(list_of_fields_points, list_of_blue_pawns_points, li
 
     for id, field in enumerate(list_of_fields_points):
         for pawn in list_of_blue_pawns_points:
-            if abs(field[0] - pawn[0]) <= 20 and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
+            if abs(field[0] - pawn[0]) <= STANDARD_DEVIATION and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
                 cv2.circle(image, (field[0], field[1]), 10, (0, 0, 255), 3)
                 result[id] = Field.BLACK_FIELD_BLUE_PAWN
 
-        for pawn in list_of_blue_kings_points:
-            if abs(field[0] - pawn[0]) <= 20 and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
+        for pawn in list_of_blue_queens_points:
+            if abs(field[0] - pawn[0]) <= STANDARD_DEVIATION and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
                 cv2.circle(image, (field[0], field[1]), 10, (0, 0, 127), 3)
-                result[id] = Field.BLACK_FIELD_BLUE_KING
+                result[id] = Field.BLACK_FIELD_BLUE_QUEEN
 
         for pawn in list_of_red_pawns_points:
-            if abs(field[0] - pawn[0]) <= 20 and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
+            if abs(field[0] - pawn[0]) <= STANDARD_DEVIATION and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
                 cv2.circle(image, (field[0], field[1]), 10, (255, 0, 0), 3)
                 result[id] = Field.BLACK_FIELD_RED_PAWN
 
-        for pawn in list_of_red_kings_points:
-            if abs(field[0] - pawn[0]) <= 20 and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
+        for pawn in list_of_red_queens_points:
+            if abs(field[0] - pawn[0]) <= STANDARD_DEVIATION and abs(field[1] - pawn[1]) <= STANDARD_DEVIATION:
                 cv2.circle(image, (field[0], field[1]), 10, (127, 0, 0), 3)
-                result[id] = Field.BLACK_FIELD_RED_KING
+                result[id] = Field.BLACK_FIELD_RED_QUEEN
 
     return result
 
@@ -287,7 +287,7 @@ def start(camera_image, last_result, n=5):
             blue_mask = cv2.dilate(blue_mask, kernel, iterations=2)
             # cv2.imshow("blue po", blue_mask)
             # cv2.waitKey(1)
-            blue_pawns, blue_kings = get_list_of_pawns_points(image=blue_mask, threshold=131)
+            blue_pawns, blue_queens = get_list_of_pawns_points(image=blue_mask, threshold=131)
 
             # # Find red pawns
             lower_red = np.array([0, 100, 130])
@@ -303,7 +303,7 @@ def start(camera_image, last_result, n=5):
             # cv2.imshow("red po", red_and_blue_mask)
             # cv2.waitKey(1)
             red_mask = cv2.bitwise_and(red_and_blue_mask, cv2.bitwise_not(blue_mask))
-            red_pawns, red_kings = get_list_of_pawns_points(image=red_mask, threshold=100)
+            red_pawns, red_queens = get_list_of_pawns_points(image=red_mask, threshold=100)
 
             # Find fields
             fields = get_fields_as_list_of_points_list(image)
@@ -311,14 +311,14 @@ def start(camera_image, last_result, n=5):
                 number_of_fails += 1
                 continue
 
+
             info_about_each_field = get_fields_info_as_list(list_of_fields_points=fields, image=image,
                                                             list_of_blue_pawns_points=blue_pawns,
-                                                            list_of_blue_kings_points=blue_kings,
+                                                            list_of_blue_queens_points=blue_queens,
                                                             list_of_red_pawns_points=red_pawns,
-                                                            list_of_red_kings_points=red_kings)
-            #
-            # cv2.imshow("plansza", image)
-            # cv2.waitKey(1)
+                                                            list_of_red_queens_points=red_queens)
+
+
             for i, x in enumerate(info_about_each_field):
                 n_results[i].append(x)
 
@@ -330,6 +330,7 @@ def start(camera_image, last_result, n=5):
 
         except Exception as e:
             number_of_fails += 1
+            # print("exception: " + str(e))
             continue
 
         if cv2.waitKey(1) == 27:
@@ -354,11 +355,12 @@ def start(camera_image, last_result, n=5):
     result.append(temp_result)
 
     # check result
-    for x in result:
-        for y in x:
-            print(y, end='; ')
-        print('\n')
-
+    # for x in result:
+    #     for y in x:
+    #         print(y.value, end=';')
+    #     print('')
+    print("result---------------------------------------")
+    print(result)
     return image, result
 
 
