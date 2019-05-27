@@ -54,12 +54,12 @@ class ArchiveWindow:
                                             caw.FONT_TEXT, (0, 0, 255))
 
         self.selected_game_up = Button(caw.SELECT_GAME_OFFSET_X_B,(caw.SELECT_GAME_OFFSET_Y-2*caw.SELECT_GAME_HEIGHT_B),
-                                       caw.SELECT_GAME_WIDTH_B, caw.SELECT_GAME_HEIGHT_B, self.game_up, caw.FONT, "UP",
+                                       caw.SELECT_GAME_WIDTH_B, caw.SELECT_GAME_HEIGHT_B, self.game_up, caw.FONT, "NEXT",
                                        (255, 0, 0))
 
         self.selected_game_down = Button(caw.SELECT_GAME_OFFSET_X_B, (caw.SELECT_GAME_OFFSET_Y+2*caw.SELECT_GAME_HEIGHT_B),
                                          caw.SELECT_GAME_WIDTH_B, caw.SELECT_GAME_HEIGHT_B, self.game_down, caw.FONT,
-                                         "DOWN", (255, 0, 0))
+                                         "PREVIOUS", (255, 0, 0))
 
         self.selected_move_info = TextField(caw.SELECT_MOVE_OFFSET_X, caw.SELECT_MOVE_OFFSET_Y,
                                             caw.SELECT_MOVE_WIDTH, caw.SELECT_MOVE_HEIGHT, "MOVE X", caw.FONT_TEXT,

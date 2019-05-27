@@ -1,0 +1,16 @@
+"""
+CONFIG
+Default Menu settings
+"""
+SETTING_SIZE = (1920, 1080)  # size of menu (w, h)
+FONT = "Retro.ttf"
+FPS = 30
+TITLE_FONT = int(SETTING_SIZE[0]/10)
+OPTION_FONT = int(SETTING_SIZE[0]/25)
+SELECTED_FONT = int(SETTING_SIZE[0]/35)
+NORMAL_RECT = int(SETTING_SIZE[0]/25)
+SELECTED_RECT = int(SETTING_SIZE[0]/35)
+URL = 'http://192.168.43.1:8080/shot.jpg'
+IP = '192.168.43.1'
+PORT = '8080'
+

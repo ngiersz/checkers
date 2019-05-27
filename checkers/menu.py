@@ -7,6 +7,7 @@ import checkers.configs.config_menu as ccm
 from checkers.checker_window import CheckersWindow
 from checkers.archive_window import ArchiveWindow
 from checkers.button import Button
+from checkers.settings_window import SettingsWindow
 import checkers.configs.config_buttons as cb
 from checkers.utils import text_format
 
@@ -33,14 +34,18 @@ class MenuWindow:
             ccm.NORMAL_RECT*2, ccm.NORMAL_RECT, self.archive_window,
             cb.FONT, 'Archive', (255, 255, 255),
             cb.IMAGE_NORMAL, cb.IMAGE_HOVER, cb.IMAGE_DOWN)
-        self.quit_button = Button(
+        self.settings_button = Button(
             ccm.MENU_SIZE[0] / 2 - ccm.NORMAL_RECT / 2, ccm.MENU_SIZE[1]/3+ccm.NORMAL_RECT*4,
-            ccm.NORMAL_RECT*2, ccm.NORMAL_RECT, self.quit_game,
+            ccm.NORMAL_RECT*2, ccm.NORMAL_RECT, self.settings_window,
+            cb.FONT, 'Settings', (255, 255, 255))
+        self.quit_button = Button(
+            ccm.MENU_SIZE[0] / 2 - ccm.NORMAL_RECT / 2, ccm.MENU_SIZE[1] / 3 + ccm.NORMAL_RECT * 6,
+            ccm.NORMAL_RECT * 2, ccm.NORMAL_RECT, self.quit_game,
             cb.FONT, 'Quit', (255, 255, 255))
 
         # Add the button sprites to the sprite group.
-        self._all_sprites.add(self.start_button, self.archive_button, self.quit_button)
-        self._to_select_buttons = [self.start_button, self.archive_button, self.quit_button]
+        self._all_sprites.add(self.start_button, self.archive_button, self.settings_button, self.quit_button)
+        self._to_select_buttons = [self.start_button, self.archive_button, self.settings_button, self.quit_button]
         self._selectedIT = 0
         self._selected = self._to_select_buttons[0]
 
@@ -64,6 +69,9 @@ class MenuWindow:
             if event.type == pg.QUIT:
                 self._done = True
             if event.type == pg.KEYDOWN:
+                if event.key == pg.K_ESCAPE:
+                    self._done = True
+                    print("esc")
                 if event.key == pg.K_UP:
                     if self._selectedIT == 0:
                         self._selectedIT = len(self._to_select_buttons) - 1
@@ -91,6 +99,10 @@ class MenuWindow:
     def checker_window(self):
         CheckersWindow().main()
         print("checkers")
+
+    def settings_window(self):
+        SettingsWindow().main()
+        print("Settings")
 
     def archive_window(self):
         ArchiveWindow().main()
