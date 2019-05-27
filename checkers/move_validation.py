@@ -400,7 +400,7 @@ class MoveValidation:
         if self.Previous[x][y] == enums.Field.BLACK_FIELD_RED_PAWN and self.Current[x][y] == enums.Field.BLACK_FIELD_RED_QUEEN:
             return True, player
         self.ErrorMessage = 'One difference on board and not a pawn promotion'
-        return False
+        return False, player
 
     def validate_move(self, player):
         if len(self.Differences) == 0:
@@ -417,7 +417,4 @@ class MoveValidation:
             return self.validate_capture_move(player)
         return False, player
 
-mv = MoveValidation()
-mv.compare_boards(const.TEST_BOARD_9, const.TEST_BOARD_10)
-print(mv.validate_move(enums.Player.BLACK), mv.ErrorMessage, mv.SuccessMessage)
 

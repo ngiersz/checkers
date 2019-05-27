@@ -5,7 +5,7 @@ from checkers.Field import Field
 CONFIG
 Default checkers_window  settings
 """
-SIZE = (1920, 1080)  # Size of checkers window
+SIZE = (1150, 700)  # Size of checkers window
 RECT_SIZE = int(SIZE[0] / 20)  # size of fields on chessboard
 PAWN_SIZE = SIZE[0] / 30  # size of checker
 CAMERA_H = int(SIZE[1] / 2)  # height of camera window

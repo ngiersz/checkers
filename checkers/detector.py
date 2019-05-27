@@ -354,11 +354,10 @@ def start(camera_image, last_result, n=5):
     result.append(temp_result)
 
     # check result
-    # for x in result:
-    #     for y in x:
-    #         print(y, end='; ')
-    #     print('\n')
-    # image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
+    for x in result:
+        for y in x:
+            print(y, end='; ')
+        print('\n')
 
     return image, result
 

@@ -28,7 +28,7 @@ class CheckersWindow:
     """
 
     def __init__(self):
-        self._url = "http://192.168.1.66:8080/shot.jpg"
+        self._url = "http://192.168.43.1:8080/shot.jpg"
 
         self._player = Player.WHITE
         self._camera = None
