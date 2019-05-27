@@ -14,7 +14,10 @@ class Button(pg.sprite.Sprite):
                  image_down=cb.IMAGE_DOWN):
         super().__init__()
         # Scale the images to the desired size (doesn't modify the originals).
-        self.img_back = image_normal
+        self.img_back_normal = image_normal.copy()
+        self.img_back_hover = image_hover.copy()
+        self.img_back_down = image_down.copy()
+
         self.width = width
         self.height = height
         self.font = font
@@ -30,7 +33,8 @@ class Button(pg.sprite.Sprite):
         self.text_surf = font.render(text, True, text_color)
         self.text_rect = self.text_surf.get_rect(center=self.image_center)
         # Blit the text onto the images.
-        for image in (self.image_normal, self.image_hover, self.image_down):
+        self.images = [self.image_normal, self.image_hover, self.image_down]
+        for image in self.images:
             image.blit(self.text_surf, self.text_rect)
 
         # This function will be called when the button gets pressed.
@@ -73,11 +77,26 @@ class Button(pg.sprite.Sprite):
             self.button_down = False
 
     def set_text(self, text):
-        self.image_normal = pg.transform.scale(self.img_back, (self.width,  self.height))
+        self.image_normal = pg.transform.scale(self.img_back_normal, (self.width,  self.height))
+        self.image_hover = pg.transform.scale(self.img_back_hover, (self.width,  self.height))
+        self.image_down = pg.transform.scale(self.img_back_down, (self.width,  self.height))
         self.image = self.image_normal  # The currently active image.
         self.image_center = self.image.get_rect().center
         self.text_surf = self.font.render(text, True, self.text_color)
         text_rect = self.text_surf.get_rect(center=self.image_center)
         self.image_normal.blit(self.text_surf, text_rect)
+        self.image_down.blit(self.text_surf, text_rect)
+        self.image_hover.blit(self.text_surf, text_rect)
 
+
+        # self.image_normal = pg.transform.scale(self.img_back_normal, (self.width,  self.height))
+        # self.image = self.image_normal  # The currently active image.
+        # self.image_center = self.image.get_rect().center
+        # self.text_surf = self.font.render(text, True, self.text_color)
+        # self.image_normal = pg.transform.scale(cb.IMAGE_NORMAL, (self.width, self.height))
+        # self.image_hover = pg.transform.scale(cb.IMAGE_HOVER, (self.width, self.height))
+        # self.image_down = pg.transform.scale(cb.IMAGE_DOWN, (self.width, self.height))
+        # text_rect = self.text_surf.get_rect(center=self.image_center)
+        # for image in self.images:
+        #     image.blit(self.text_surf, text_rect)
 

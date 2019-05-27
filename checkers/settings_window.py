@@ -1,7 +1,10 @@
 import pygame as pg
+import os
 import checkers.configs.config_settings as ccs
 import checkers.configs.config_colors as ccc
 import checkers.configs.config_buttons as cb
+import checkers.configs.url as url
+
 
 from checkers.button import Button
 
@@ -14,9 +17,9 @@ class SettingsWindow:
 
         self._screen = pg.display.set_mode(ccs.SETTING_SIZE, pg.FULLSCREEN)
         self.changing_camera_url = False
-        self._url = ccs.URL
-        self._port = ccs.PORT
-        self._ip = ccs.IP
+        self._url = url.URL
+        self._port = url.PORT
+        self._ip = url.IP
 
         self.changing_ip = False
         self.changing_port = False
@@ -71,18 +74,20 @@ class SettingsWindow:
                 if self.changing_ip:
                     if event.key == pg.K_RETURN:
                         self.changing_ip = False
+                        print(self.changing_ip)
                     elif event.key == pg.K_BACKSPACE:
                         self._ip = self._ip[:-1]
                     else:
-                        self._url += event.unicode
+                        self._ip += event.unicode
                         print(self._ip)
                     self.change_camera_ip.set_text(self._ip)
                     self.change_url()
                 if self.changing_port:
                     if event.key == pg.K_RETURN:
                         self.changing_port = False
+                        print(self.changing_port)
                     elif event.key == pg.K_BACKSPACE:
-                        self._port = self._ip[:-1]
+                        self._port = self._port[:-1]
                     else:
                         self._port += event.unicode
                         print(self._port)
@@ -142,9 +147,16 @@ class SettingsWindow:
     def udpate_url(self):
         self.changing_port = True
 
-
-
-
     def main(self):
         self.run()
+        with open("configs/url.py", "w") as f:
+            f.write('URL = "' + str(self._url)+'"\n')
+            f.write('IP = "' + str(self._ip) + '"\n')
+            f.write('PORT = "' + str(self._port) + '"\n')
+            f.flush()
+            os.fsync(f.fileno())
+            f.close()
+
+
+
 
