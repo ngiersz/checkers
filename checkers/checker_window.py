@@ -4,19 +4,18 @@ import json
 import cv2
 import numpy as np
 import requests
-import time
-# import eventlet
 import threading
 from checkers.Field import Field
 from checkers.Field import Player
 import checkers.configs.config_checkers_window as ccw
 import checkers.configs.config_colors as ccc
-import checkers.configs.config_buttons as cb
 from checkers.button import Button
 from checkers.detector import start
 from checkers.move_validation import MoveValidation
 import checkers.utils as utils
 from checkers.text_field import TextField
+from checkers.winner_window import WinnerWindow
+import time
 
 class CheckersWindow:
     """
@@ -36,6 +35,7 @@ class CheckersWindow:
         self._move_validation = MoveValidation()
         self._game = []
         self._game.append(self._state)
+        self._move_made = False
 
         self._screen = pg.display.set_mode(ccw.SIZE, pg.FULLSCREEN)
         self.changing_name = False
@@ -144,7 +144,15 @@ class CheckersWindow:
         while not self._done:
             temp_old_state = self._state.copy()
             temp_old_img = self._img.copy()
-            self._img, self._state = start(self._frame, self._state, n=10)
+            self._img, self._state, self.winner = start(self._frame, self._state, n=10)
+
+            if self.winner != None and self._move_made == True:
+                self.move_comunicate.set_text('We have a winner! Player: ' + str(self.winner))
+                time.sleep(2)
+                self._done = True
+                self.run_winner_window(self.winner)
+            #     run winner window
+
             if self._reset:
                 self._game = []
                 self._game.append(self._state.copy())
@@ -157,12 +165,13 @@ class CheckersWindow:
                     print('Error!: ',self._move_validation.ErrorMessage)
                     self._state = temp_old_state.copy()
                     self._img_print = temp_old_img.copy()
-                    self.text = self.move_comunicate.set_text('Error: ' + self._move_validation.ErrorMessage)
+                    self.move_comunicate.set_text('Error: ' + self._move_validation.ErrorMessage)
                 else:
                     # self._img = cv2.flip(self._img, 1)
                     print('Success!: ', self._move_validation.SuccessMessage)
                     self.move_comunicate.set_text("Success! " + self._move_validation.SuccessMessage)
                     self._img_print = self._img.copy()
+                    self._move_made = True
 
                     if "No differences" not in self._move_validation.SuccessMessage:
                         self._save = True
@@ -293,6 +302,9 @@ class CheckersWindow:
         self._white_pawn = pg.surfarray.make_surface(self._white_pawn)
         self._black_pawn = cv2.resize(ccw.BLACK_PAWN, (ccw.RECT_SIZE, ccw.RECT_SIZE))
         self._black_pawn = pg.surfarray.make_surface(self._black_pawn)
+
+    def run_winner_window(self, winner):
+        WinnerWindow(winner).run()
 
     def main(self):
         t1 = threading.Thread(target=self.run_logic)

@@ -2,6 +2,7 @@ import cv2
 import imutils
 import numpy as np
 from checkers.Field import Field
+from checkers.Field import Player
 import requests
 from statistics import mode
 from cv2 import aruco
@@ -235,10 +236,11 @@ def start(camera_image, last_result, n=5):
     n_results = [[] for i in range(64)]
     counter = 0
     number_of_fails = 0
+    winner = None
     while counter < n:
 
         if number_of_fails > 10:
-            return camera_image, last_result
+            return camera_image, last_result, winner
 
         try:
             image = get_chessboard_as_image(camera_image)
@@ -303,6 +305,12 @@ def start(camera_image, last_result, n=5):
                                                             list_of_red_pawns_points=red_pawns,
                                                             list_of_red_queens_points=red_queens)
 
+            print(len(blue_pawns))
+            print(len(red_pawns))
+            if(len(blue_pawns) == 0 and len(blue_queens) == 0):
+                winner = Player.BLACK
+            elif(len(red_pawns) == 0 and len(red_queens) == 0):
+                winner = Player.WHITE
 
             for i, x in enumerate(info_about_each_field):
                 n_results[i].append(x)
@@ -346,7 +354,7 @@ def start(camera_image, last_result, n=5):
     #     print('')
     print("result---------------------------------------")
     print(result)
-    return image, result
+    return image, result, winner
 
 
 def startTest():
