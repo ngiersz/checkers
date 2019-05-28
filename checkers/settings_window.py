@@ -4,6 +4,7 @@ import json
 import checkers.configs.config_settings as ccs
 import checkers.configs.config_colors as ccc
 import checkers.configs.config_buttons as cb
+from checkers.text_field import TextField
 
 from checkers.button import Button
 
@@ -31,10 +32,8 @@ class SettingsWindow:
 
         self.load_settings()
 
-        self.camera_url = Button(
-            ccs.SETTING_SIZE[0] / 2 - ccs.NORMAL_RECT*10 / 2,  ccs.SETTING_SIZE[1]/3,
-            ccs.NORMAL_RECT*10, ccs.NORMAL_RECT, self.change_url,
-            cb.FONT, self._url, (255, 255, 255))
+        self.camera_url = TextField(ccs.SETTING_SIZE[0] / 2 - ccs.NORMAL_RECT*10 / 2,  ccs.SETTING_SIZE[1]/3,
+                                    ccs.NORMAL_RECT * 10, ccs.NORMAL_RECT, self._url, cb.FONT,  (255, 255, 255))
         self.change_camera_ip = Button(
             ccs.SETTING_SIZE[0] / 2 - ccs.NORMAL_RECT*4 / 2,  ccs.SETTING_SIZE[1]/3+ccs.NORMAL_RECT*2,
             ccs.NORMAL_RECT*4, ccs.NORMAL_RECT, self.change_ip,
