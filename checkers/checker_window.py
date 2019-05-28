@@ -16,7 +16,7 @@ from checkers.button import Button
 from checkers.detector import start
 from checkers.move_validation import MoveValidation
 import checkers.utils as utils
-
+from checkers.text_field import TextField
 
 class CheckersWindow:
     """
@@ -28,7 +28,7 @@ class CheckersWindow:
     """
 
     def __init__(self):
-        self._url = "http://192.168.43.1:8080/shot.jpg"
+        self._url = "http://192.168.1.67:8080/shot.jpg"
 
         self._player = Player.WHITE
         self._camera = None
@@ -72,7 +72,12 @@ class CheckersWindow:
                                         ccw.SET_STATE_OFFSET_Y,
                                         ccw.SET_STATE_WIDTH, ccw.SET_STATE_HEIGHT, self.reset_state, ccw.FONT,
                                         "Reset", (255, 0, 0))
-        self._all_sprites.add(self.change_name_field, self.save_game_button, self.set_status)
+        self.move_comunicate = TextField(ccw.MOVE_COMMUNICATE_OFFSET_X,
+                                         ccw.MOVE_COMMUNICATE_OFFSET_Y,
+                                         ccw.MOVE_COMMUNICATE_WIDTH,
+                                         ccw.MOVE_COMMUNICATE_HEIGHT,
+                                         'Turn: Blue pawns')
+        self._all_sprites.add(self.change_name_field, self.save_game_button, self.set_status, self.move_comunicate)
 
     def run(self):
         """
@@ -149,12 +154,14 @@ class CheckersWindow:
                 temp_result, self._player = self._move_validation.validate_move(self._player)
                 print(self._player)
                 if not temp_result:
-                    print('Error!: ', self._move_validation.ErrorMessage)
+                    print('Error!: ',self._move_validation.ErrorMessage)
                     self._state = temp_old_state.copy()
                     self._img_print = temp_old_img.copy()
+                    self.text = self.move_comunicate.set_text('Error: ' + self._move_validation.ErrorMessage)
                 else:
                     # self._img = cv2.flip(self._img, 1)
                     print('Success!: ', self._move_validation.SuccessMessage)
+                    self.move_comunicate.set_text("Success! " + self._move_validation.SuccessMessage)
                     self._img_print = self._img.copy()
 
                     if "No differences" not in self._move_validation.SuccessMessage:
