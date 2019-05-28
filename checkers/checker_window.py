@@ -28,7 +28,8 @@ class CheckersWindow:
     """
 
     def __init__(self):
-        self._url = "http://192.168.43.1:8080/shot.jpg"
+        self.load_url()
+        # self._url = "http://192.168.43.1:8080/shot.jpg"
 
         self._player = Player.WHITE
         self._camera = None
@@ -286,6 +287,14 @@ class CheckersWindow:
         self._white_pawn = pg.surfarray.make_surface(self._white_pawn)
         self._black_pawn = cv2.resize(ccw.BLACK_PAWN, (ccw.RECT_SIZE, ccw.RECT_SIZE))
         self._black_pawn = pg.surfarray.make_surface(self._black_pawn)
+
+    def load_url(self):
+        try:
+            with open("configs/url.py", "r") as json_file:
+                json_data = json.load(json_file)
+                self._url = json_data["url"]
+        except Exception as e:
+            print(e)
 
     def main(self):
         t1 = threading.Thread(target=self.run_logic)

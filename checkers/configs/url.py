@@ -1,3 +1,1 @@
-URL = "http://asd12:2121/shot.jpg"
-IP = "asd12"
-PORT = "2121"
+{"url": "http://123.123.123.123:7777/shot.jpg", "ip": "123.123.123.123", "port": "7777"}

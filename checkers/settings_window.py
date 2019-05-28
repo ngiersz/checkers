@@ -1,10 +1,9 @@
 import pygame as pg
 import os
+import json
 import checkers.configs.config_settings as ccs
 import checkers.configs.config_colors as ccc
 import checkers.configs.config_buttons as cb
-import checkers.configs.url as url
-
 
 from checkers.button import Button
 
@@ -17,9 +16,9 @@ class SettingsWindow:
 
         self._screen = pg.display.set_mode(ccs.SETTING_SIZE, pg.FULLSCREEN)
         self.changing_camera_url = False
-        self._url = url.URL
-        self._port = url.PORT
-        self._ip = url.IP
+        self._url = ccs.URL
+        self._port = ccs.PORT
+        self._ip = ccs.IP
 
         self.changing_ip = False
         self.changing_port = False
@@ -29,6 +28,8 @@ class SettingsWindow:
         self._all_sprites = pg.sprite.Group()
 
         pg.display.set_caption("settings")
+
+        self.load_settings()
 
         self.camera_url = Button(
             ccs.SETTING_SIZE[0] / 2 - ccs.NORMAL_RECT*10 / 2,  ccs.SETTING_SIZE[1]/3,
@@ -43,6 +44,7 @@ class SettingsWindow:
             ccs.NORMAL_RECT*2, ccs.NORMAL_RECT, self.change_port,
             cb.FONT, self._port, (255, 255, 255))
         self._all_sprites.add(self.camera_url, self.change_camera_ip, self.change_camera_port)
+
 
     def run(self):
         """
@@ -131,6 +133,7 @@ class SettingsWindow:
             print("loog FALSE")
         else:
             self.changing_ip = True
+            self.changing_port = False
             print("loog TRUE")
             self._ip = ""
 
@@ -141,21 +144,35 @@ class SettingsWindow:
             print("loog FALSE")
         else:
             self.changing_port = True
+            self.changing_port = False
             print("loog TRUE")
             self._port = ""
 
     def udpate_url(self):
         self.changing_port = True
 
+    def load_settings(self):
+        try:
+            with open("configs/url.py", "r") as json_file:
+                json_data = json.load(json_file)
+                self._url = json_data["url"]
+                self._ip = json_data["ip"]
+                self._port = json_data["port"]
+        except Exception as e:
+            print(e)
+
+    def save_settings(self):
+        try:
+            with open("configs/url.py", "w") as json_file:
+                data = {"url": self._url, "ip": self._ip, "port": self._port}
+                json.dump(data, json_file)
+
+        except Exception as e:
+            print(e)
+
     def main(self):
         self.run()
-        with open("configs/url.py", "w") as f:
-            f.write('URL = "' + str(self._url)+'"\n')
-            f.write('IP = "' + str(self._ip) + '"\n')
-            f.write('PORT = "' + str(self._port) + '"\n')
-            f.flush()
-            os.fsync(f.fileno())
-            f.close()
+        self.save_settings()
 
 
 
