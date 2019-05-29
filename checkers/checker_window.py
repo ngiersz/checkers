@@ -176,7 +176,7 @@ class CheckersWindow:
                 else:
                     # self._img = cv2.flip(self._img, 1)
                     print('Success!: ', self._move_validation.SuccessMessage)
-                    self.move_comunicate.set_text('Move correct')
+                    self.move_comunicate.set_text('Correct move')
                     self._img_print = self._img.copy()
                     self._move_made = True
                     piece_count = self._move_validation.count_pieces()
