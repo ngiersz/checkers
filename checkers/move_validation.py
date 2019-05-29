@@ -404,9 +404,9 @@ class MoveValidation:
     def validate_pawn_promotion(self, player):
         x = self.Differences[0][0]
         y = self.Differences[0][1]
-        if self.Previous[x][y] == enums.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x][y] == enums.Field.BLACK_FIELD_BLUE_QUEEN:
+        if self.Previous[x][y] == enums.Field.BLACK_FIELD_BLUE_PAWN and self.Current[x][y] == enums.Field.BLACK_FIELD_BLUE_QUEEN and x == 0:
             return True, player
-        if self.Previous[x][y] == enums.Field.BLACK_FIELD_RED_PAWN and self.Current[x][y] == enums.Field.BLACK_FIELD_RED_QUEEN:
+        if self.Previous[x][y] == enums.Field.BLACK_FIELD_RED_PAWN and self.Current[x][y] == enums.Field.BLACK_FIELD_RED_QUEEN and x == 7:
             return True, player
         self.ErrorMessage = 'One difference on board and not a pawn promotion'
         return False, player
