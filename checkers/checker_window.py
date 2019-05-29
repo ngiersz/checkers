@@ -146,12 +146,6 @@ class CheckersWindow:
             temp_old_img = self._img.copy()
             self._img, self._state, self.winner = start(self._frame, self._state, n=10)
 
-            if self.winner != None and self._move_made == True:
-                self.move_comunicate.set_text('We have a winner! Player: ' + str(self.winner))
-                time.sleep(2)
-                self._done = True
-                self.run_winner_window(self.winner)
-            #     run winner window
 
             if self._reset:
                 self._game = []
@@ -175,6 +169,14 @@ class CheckersWindow:
 
                     if "No differences" not in self._move_validation.SuccessMessage:
                         self._save = True
+
+                    if self.winner != None and self._move_made == True:
+                        self.move_comunicate.set_text('We have a winner! Player: ' + str(self.winner))
+                        time.sleep(3)
+                        self._done = True
+                        self.run_winner_window(self.winner)
+                    #     run winner window
+
             if self._save:
                 self._game.append(self._state)
                 self._save = False
