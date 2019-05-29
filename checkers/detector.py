@@ -236,11 +236,10 @@ def start(camera_image, last_result, n=5):
     n_results = [[] for i in range(64)]
     counter = 0
     number_of_fails = 0
-    winner = None
     while counter < n:
 
         if number_of_fails > 10:
-            return camera_image, last_result, winner
+            return camera_image, last_result
 
         try:
             image = get_chessboard_as_image(camera_image)
@@ -307,10 +306,6 @@ def start(camera_image, last_result, n=5):
 
             print(len(blue_pawns))
             print(len(red_pawns))
-            if(len(blue_pawns) == 0 and len(blue_queens) == 0):
-                winner = Player.BLACK
-            elif(len(red_pawns) == 0 and len(red_queens) == 0):
-                winner = Player.WHITE
 
             for i, x in enumerate(info_about_each_field):
                 n_results[i].append(x)
@@ -354,7 +349,7 @@ def start(camera_image, last_result, n=5):
     #     print('')
     print("result---------------------------------------")
     print(result)
-    return image, result, winner
+    return image, result
 
 
 def startTest():

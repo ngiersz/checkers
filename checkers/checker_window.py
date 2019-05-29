@@ -147,9 +147,8 @@ class CheckersWindow:
         while not self._done:
             temp_old_state = self._state.copy()
             temp_old_img = self._img.copy()
-            # TODO: set winner in validate_move
-            self._img, self._state, self.winner = start(self._frame, self._state, n=1)
-
+            self._img, self._state = start(self._frame, self._state, n=1)
+            self.winner = None
 
             if self._reset:
                 self._game = []
@@ -157,7 +156,6 @@ class CheckersWindow:
                 self._reset = False
             else:
                 self._move_validation.compare_boards(temp_old_state, self._state)
-                # TODO: set winner in validate_move
                 temp_result, self._player = self._move_validation.validate_move(self._player)
                 print(self._player)
                 if not temp_result:
@@ -181,9 +179,15 @@ class CheckersWindow:
                     self.move_comunicate.set_text('Move correct')
                     self._img_print = self._img.copy()
                     self._move_made = True
+                    piece_count = self._move_validation.count_pieces()
 
                     if "No differences" not in self._move_validation.SuccessMessage:
                         self._save = True
+
+                    if piece_count.Current_black == 0:
+                        self.winner = "BLUE"
+                    elif piece_count.Current_white == 0:
+                        self.winner = "RED"
 
                     if self.winner != None and self._move_made == True:
                         self.move_comunicate.set_text('We have a winner! Player: ' + str(self.winner))

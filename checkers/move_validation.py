@@ -38,6 +38,7 @@ class MoveValidation:
     Current = []
     ErrorMessage = ''
     SuccessMessage = ''
+    PieceCounter = PieceCounter(0, 0, 0, 0, 0, 0)
 
     def compare_boards(self, previous, current):
         self.Differences = []
@@ -61,13 +62,13 @@ class MoveValidation:
             for j in range(const.SIZE):
                 if self.Previous[i][j] != enums.Field.BLACK and self.Previous[i][j] != enums.Field.WHITE:
                     counter_previous += 1
-                    if self.Previous[i][j] == enums.Field.BLACK_FIELD_BLUE_PAWN:
+                    if self.is_a_white_figure(self.Previous[i][j]):
                         counter_previous_white += 1
                     else:
                         counter_previous_black += 1
                 if self.Current[i][j] != enums.Field.BLACK and self.Current[i][j] != enums.Field.WHITE:
                     counter_current += 1
-                    if self.Current[i][j] == enums.Field.BLACK_FIELD_BLUE_PAWN:
+                    if self.is_a_white_figure(self.Current[i][j]):
                         counter_current_white += 1
                     else:
                         counter_current_black += 1
@@ -77,6 +78,7 @@ class MoveValidation:
 
     def validate_normal_move(self, player):
         pieces_counter = self.count_pieces()
+        self.PieceCounter = pieces_counter
         if pieces_counter.Current != pieces_counter.Previous:
             self.ErrorMessage = 'Counter raised error - after normal move there should be no change in piece counter'
             # normal move doesnt remove any piece
@@ -196,6 +198,7 @@ class MoveValidation:
 
     def validate_capture_move(self, player):
         pieces_counter = self.count_pieces()
+        self.PieceCounter = pieces_counter
         if pieces_counter.Previous - pieces_counter.Current != 1:
             self.ErrorMessage = 'Counter raised error - after capture there should be one pawn less in counter'
             # capturing removes one peace from the board
