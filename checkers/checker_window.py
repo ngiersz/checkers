@@ -27,7 +27,7 @@ class CheckersWindow:
     """
 
     def __init__(self):
-        self._url = "http://192.168.1.67:8080/shot.jpg"
+        self._url = "http://192.168.43.1:8080/shot.jpg"
 
         self._player = Player.WHITE
         self._camera = None
@@ -56,6 +56,9 @@ class CheckersWindow:
         self._frame = cv2.resize(self._frame, (500, 500))
         self._img = self._frame.copy()
         self._img_print = self._img.copy()
+
+        self._error_message = None
+        self._error_counter = 0
 
         pg.display.set_caption("checkers")
         self.init_textures()
@@ -144,7 +147,8 @@ class CheckersWindow:
         while not self._done:
             temp_old_state = self._state.copy()
             temp_old_img = self._img.copy()
-            self._img, self._state, self.winner = start(self._frame, self._state, n=10)
+            # TODO: set winner in validate_move
+            self._img, self._state, self.winner = start(self._frame, self._state, n=1)
 
 
             if self._reset:
@@ -153,17 +157,28 @@ class CheckersWindow:
                 self._reset = False
             else:
                 self._move_validation.compare_boards(temp_old_state, self._state)
+                # TODO: set winner in validate_move
                 temp_result, self._player = self._move_validation.validate_move(self._player)
                 print(self._player)
                 if not temp_result:
-                    print('Error!: ',self._move_validation.ErrorMessage)
+                    print('Error!: ', self._move_validation.ErrorMessage)
                     self._state = temp_old_state.copy()
                     self._img_print = temp_old_img.copy()
-                    self.move_comunicate.set_text('Error: ' + self._move_validation.ErrorMessage)
+
+                    if self._error_message == self._move_validation.ErrorMessage:
+                        self._error_counter += 1
+                    else:
+                        self._error_message = self._move_validation.ErrorMessage
+                        self._error_counter = 0
+
+                    if self._error_counter > 10:
+                        self.move_comunicate.set_text('Error: ' + self._move_validation.ErrorMessage)
+                        self._error_counter = 0
+                        self._error_message = None
                 else:
                     # self._img = cv2.flip(self._img, 1)
                     print('Success!: ', self._move_validation.SuccessMessage)
-                    self.move_comunicate.set_text("Success! " + self._move_validation.SuccessMessage)
+                    self.move_comunicate.set_text('Move correct')
                     self._img_print = self._img.copy()
                     self._move_made = True
 
@@ -174,7 +189,7 @@ class CheckersWindow:
                         self.move_comunicate.set_text('We have a winner! Player: ' + str(self.winner))
                         time.sleep(3)
                         self._done = True
-                        self.run_winner_window(self.winner)
+                        # self.run_winner_window(self.winner)
                     #     run winner window
 
             if self._save:
