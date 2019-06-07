@@ -44,7 +44,6 @@ class SettingsWindow:
             cb.FONT, self._port, (255, 255, 255))
         self._all_sprites.add(self.camera_url, self.change_camera_ip, self.change_camera_port)
 
-
     def run(self):
         """
         Main loop
@@ -119,11 +118,10 @@ class SettingsWindow:
         # --- Limit to 60 frames per second
         self._clock.tick(60)
 
-        # Close the window and quit.
+
     def change_url(self):
         self._url = 'http://'+self._ip+':'+self._port+'/shot.jpg'
         self.camera_url.set_text(self._url)
-
 
     def change_ip(self):
         print("loog hello")
@@ -143,12 +141,9 @@ class SettingsWindow:
             print("loog FALSE")
         else:
             self.changing_port = True
-            self.changing_port = False
+            self.changing_ip = False
             print("loog TRUE")
             self._port = ""
-
-    def udpate_url(self):
-        self.changing_port = True
 
     def load_settings(self):
         try:
@@ -172,7 +167,3 @@ class SettingsWindow:
     def main(self):
         self.run()
         self.save_settings()
-
-
-
-

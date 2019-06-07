@@ -123,7 +123,6 @@ class ArchiveWindow:
         """
 
         self._screen.fill(ccc.BEIGE)
-
         # Drawing chessboard
         r_counter = 0
         for row in self._state:

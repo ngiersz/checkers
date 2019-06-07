@@ -89,6 +89,8 @@ class Button(pg.sprite.Sprite):
         self.image_hover.blit(self.text_surf, text_rect)
 
 
+
+
         # self.image_normal = pg.transform.scale(self.img_back_normal, (self.width,  self.height))
         # self.image = self.image_normal  # The currently active image.
         # self.image_center = self.image.get_rect().center

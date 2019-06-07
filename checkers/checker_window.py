@@ -48,8 +48,23 @@ class CheckersWindow:
 
         self._black_field = ccc.BLACK
         self._white_field = ccc.WHITE
-        self._white_pawn = ccc.WHITE
-        self._black_pawn = ccc.BLACK
+        self._blue_pawn = ccc.BLUE
+        self._red_pawn = ccc.RED
+        self._blue_queen = ccc.BLUE
+        self._red_queen = ccc.RED
+        self._background = ccc.BEIGE
+        self._camera_window = ccc.BEIGE
+        self._bottom_bar = ccc.BEIGE
+        self._board_background = ccc.BEIGE
+
+        self.button_normal = ccw.IMAGE_NORMAL
+        self.button_hover = ccw.IMAGE_HOVER
+        self.button_down = ccw.IMAGE_DOWN
+
+        self.button_text_normal = ccw.IMAGE_TEXT_NORMAL
+        self.button_text_hover = ccw.IMAGE_TEXT_HOVER
+        self.button_text_down = ccw.IMAGE_TEXT_DOWN
+
         self._clock = pg.time.Clock()
 
         self._dt = self._clock.tick(30) / 1000
@@ -64,15 +79,16 @@ class CheckersWindow:
         self.change_name_field = Button(ccw.SELECT_NAME_OFFSET_X,
                                         ccw.SELECT_NAME_OFFSET_Y,
                                         ccw.SELECT_NAME_WIDTH, ccw.SELECT_NAME_HEIGHT, self.change_name, ccw.FONT,
-                                        self.name_to_set, (255, 0, 0))
+                                        self.name_to_set, (255, 255, 255), self.button_text_normal,
+                                        self.button_text_hover,self.button_text_down)
         self.save_game_button = Button(ccw.SAVE_GAME_OFFSET_X,
                                         ccw.SAVE_GAME_OFFSET_Y,
                                         ccw.SAVE_GAME_WIDTH, ccw.SAVE_GAME_HEIGHT, self.save_game, ccw.FONT,
-                                        "Save Game", (255, 0, 0))
+                                        "Save Game", (255, 255, 255), self.button_normal, self.button_hover,self.button_down)
         self.set_status = Button(ccw.SET_STATE_OFFSET_X,
                                         ccw.SET_STATE_OFFSET_Y,
                                         ccw.SET_STATE_WIDTH, ccw.SET_STATE_HEIGHT, self.reset_state, ccw.FONT,
-                                        "Reset", (255, 0, 0))
+                                        "Reset", (255, 255, 255), self.button_normal, self.button_hover,self.button_down)
         self._all_sprites.add(self.change_name_field, self.save_game_button, self.set_status)
 
     def run(self):
@@ -127,9 +143,6 @@ class CheckersWindow:
             img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
             self._frame = cv2.imdecode(img_arr, -1)
         except Exception as e:
-            # self._frame = cv2.imread('chessboardClean.png')
-            # self._frame = cv2.resize(self._frame, (500, 500))
-            # self._img = self._frame.copy()
             print(e)
 
     def run_logic(self):
@@ -165,7 +178,6 @@ class CheckersWindow:
                 self._save = False
 
         self._clock.tick(60)
-        #while not self._done:
 
     def save_game(self):
         """
@@ -199,6 +211,9 @@ class CheckersWindow:
         """
 
         self._screen.fill(ccc.BEIGE)
+        self._screen.blit(self._background, [0, 0, ccw.SIZE[0], ccw.SIZE[1]])
+        self._screen.blit(self._board_background, [ccw.RECT_OFFSET_X - ccw.RECT_SIZE/2,
+                                                   ccw.RECT_OFFSET_Y - ccw.RECT_SIZE/2, ccw.BOARD_SIZE, ccw.BOARD_SIZE])
 
         # Drawing chessboard
         r_counter = 0
@@ -206,45 +221,32 @@ class CheckersWindow:
             f_counter = 0
             for field in row:
                 if field == Field.BLACK:
-                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                          ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                          ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
                 elif field == Field.WHITE:
-                    self._screen.blit(self._white_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+                    self._screen.blit(self._white_field, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                          ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                          ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
                 elif field == Field.BLACK_FIELD_BLUE_PAWN:
-                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+                    self._screen.blit(self._blue_pawn, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                        ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                        ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
 
-                    pg.draw.ellipse(self._screen, ccc.BLUE, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                              ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                              ccw.PAWN_SIZE, ccw.PAWN_SIZE])
                 elif field == Field.BLACK_FIELD_RED_PAWN:
-                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+                    self._screen.blit(self._red_pawn, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                       ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                       ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
 
-                    pg.draw.ellipse(self._screen, ccc.RED, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                              ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                              ccw.PAWN_SIZE, ccw.PAWN_SIZE])
                 elif field == Field.BLACK_FIELD_BLUE_QUEEN:
-                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+                    self._screen.blit(self._blue_queen, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                         ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                         ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
 
-                    pg.draw.ellipse(self._screen, ccc.YELLOW, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                              ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                              ccw.PAWN_SIZE, ccw.PAWN_SIZE])
                 elif field == Field.BLACK_FIELD_RED_QUEEN:
-                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
-
-                    pg.draw.ellipse(self._screen, ccc.GRAY, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                              ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                              ccw.PAWN_SIZE, ccw.PAWN_SIZE])
+                    self._screen.blit(self._red_queen, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                        ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                        ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
 
                 f_counter = f_counter + 1
             r_counter = r_counter + 1
@@ -253,9 +255,12 @@ class CheckersWindow:
         # img = np.rot90(self._img_print)
         img = cv2.flip(self._img_print, 1)
         img = np.rot90(img)
-        #img = self._img
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = pg.surfarray.make_surface(img)
+        self._screen.blit(self._camera_window, (ccw.CAMERA_OFFSET_X-20, ccw.CAMERA_OFFSET_Y-20))
         self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))
+
+        self._screen.blit(self._bottom_bar, (0, ccw.SIZE[1]-ccw.BAR_SIZE_Y))
 
         self._all_sprites.draw(self._screen)
 
@@ -279,14 +284,37 @@ class CheckersWindow:
             self.name_to_set = ""
 
     def init_textures(self):
-        self._black_field = cv2.resize(ccw.BLACK_FIELD, (ccw.RECT_SIZE, ccw.RECT_SIZE))
+        self._black_field = cv2.resize(ccw.BLACK_FIELD, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._black_field = cv2.rotate(self._black_field, 0)
         self._black_field = pg.surfarray.make_surface(self._black_field)
-        self._white_field = cv2.resize(ccw.WHITE_FIELD, (ccw.RECT_SIZE, ccw.RECT_SIZE))
+        self._white_field = cv2.resize(ccw.WHITE_FIELD, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._white_field = cv2.rotate(self._white_field, 0)
         self._white_field = pg.surfarray.make_surface(self._white_field)
-        self._white_pawn = cv2.resize(ccw.WHITE_PAWN, (ccw.RECT_SIZE, ccw.RECT_SIZE))
-        self._white_pawn = pg.surfarray.make_surface(self._white_pawn)
-        self._black_pawn = cv2.resize(ccw.BLACK_PAWN, (ccw.RECT_SIZE, ccw.RECT_SIZE))
-        self._black_pawn = pg.surfarray.make_surface(self._black_pawn)
+        self._blue_pawn = cv2.resize(ccw.BLUE_PAWN, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._blue_pawn = cv2.rotate(self._blue_pawn, 0)
+        self._blue_pawn = pg.surfarray.make_surface(self._blue_pawn)
+        self._blue_queen = cv2.resize(ccw.BLUE_QUEEN, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._blue_queen = cv2.rotate(self._blue_queen, 0)
+        self._blue_queen = pg.surfarray.make_surface(self._blue_queen)
+        self._red_pawn = cv2.resize(ccw.RED_PAWN, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._red_pawn = cv2.rotate(self._red_pawn, 0)
+        self._red_pawn = pg.surfarray.make_surface(self._red_pawn)
+        self._red_queen = cv2.resize(ccw.RED_QUEEN, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._red_queen = cv2.rotate(self._red_queen, 0)
+        self._red_queen = pg.surfarray.make_surface(self._red_queen)
+        self._background = cv2.resize(ccw.BACKGROUND, ccw.SIZE)
+        self._background = cv2.rotate(self._background, 2)
+        self._background = pg.surfarray.make_surface(self._background)
+        self._camera_window = cv2.resize(ccw.WINDOW_CAMERA, (540, 540))
+        self._camera_window = cv2.rotate(self._camera_window, 2)
+        self._camera_window = pg.surfarray.make_surface(self._camera_window)
+        self._bottom_bar = cv2.resize(ccw.WINDOW_CAMERA, (ccw.SIZE[0], ccw.BAR_SIZE_Y))
+        self._bottom_bar = cv2.rotate(self._bottom_bar, 2)
+        self._bottom_bar = pg.surfarray.make_surface(self._bottom_bar)
+        self._board_background = cv2.resize(ccw.WINDOW_CAMERA, (ccw.BOARD_SIZE, ccw.BOARD_SIZE))
+        self._board_background = cv2.rotate(self._board_background, 2)
+        self._board_background = pg.surfarray.make_surface(self._board_background)
+
 
     def load_url(self):
         try:
