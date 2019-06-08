@@ -28,20 +28,27 @@ class SettingsWindow:
         self._dt = self._clock.tick(30) / 1000
         self._all_sprites = pg.sprite.Group()
 
+        self.button_normal = ccc.BEIGE
+        self.button_hover = ccc.BEIGE
+        self.button_down = ccc.BEIGE
+        self._screen_background = ccc.BEIGE
+
         pg.display.set_caption("settings")
 
+        self.init_textures()
         self.load_settings()
 
         self.camera_url = TextField(ccs.SETTING_SIZE[0] / 2 - ccs.NORMAL_RECT*10 / 2,  ccs.SETTING_SIZE[1]/3,
-                                    ccs.NORMAL_RECT * 10, ccs.NORMAL_RECT, self._url, cb.FONT,  (255, 255, 255))
+                                    ccs.NORMAL_RECT * 10, ccs.NORMAL_RECT, self._url, cb.FONT,  (255, 255, 255),
+                                    self.button_normal)
         self.change_camera_ip = Button(
             ccs.SETTING_SIZE[0] / 2 - ccs.NORMAL_RECT*4 / 2,  ccs.SETTING_SIZE[1]/3+ccs.NORMAL_RECT*2,
             ccs.NORMAL_RECT*4, ccs.NORMAL_RECT, self.change_ip,
-            cb.FONT, self._ip, (255, 255, 255))
+            cb.FONT, self._ip, (255, 255, 255), self.button_normal, self.button_hover, self.button_down)
         self.change_camera_port = Button(
             ccs.SETTING_SIZE[0] / 2 - ccs.NORMAL_RECT,  ccs.SETTING_SIZE[1]/3+ccs.NORMAL_RECT*4,
             ccs.NORMAL_RECT*2, ccs.NORMAL_RECT, self.change_port,
-            cb.FONT, self._port, (255, 255, 255))
+            cb.FONT, self._port, (255, 255, 255), self.button_normal, self.button_hover,self.button_down)
         self._all_sprites.add(self.camera_url, self.change_camera_ip, self.change_camera_port)
 
     def run(self):
@@ -106,7 +113,9 @@ class SettingsWindow:
         returns: True
         """
 
-        self._screen.fill(ccc.BEIGE)
+        self._screen.blit(self._screen_background, [0, 0, ccs.SETTING_SIZE[0], ccs.SETTING_SIZE[1]])
+
+        # self._screen.fill(ccc.BEIGE)
 
         self._all_sprites.draw(self._screen)
 
@@ -117,7 +126,6 @@ class SettingsWindow:
 
         # --- Limit to 60 frames per second
         self._clock.tick(60)
-
 
     def change_url(self):
         self._url = 'http://'+self._ip+':'+self._port+'/shot.jpg'
@@ -163,6 +171,12 @@ class SettingsWindow:
 
         except Exception as e:
             print(e)
+
+    def init_textures(self):
+        self._screen_background = pg.surfarray.make_surface(ccs.BACKGROUND)
+        self.button_normal = pg.surfarray.make_surface(ccs.BUTTON)
+        self.button_hover = pg.surfarray.make_surface(ccs.BUTTON2)
+        self.button_down = pg.surfarray.make_surface(ccs.BUTTON3)
 
     def main(self):
         self.run()

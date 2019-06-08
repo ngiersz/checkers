@@ -33,6 +33,17 @@ RED_PAWN = cv2.cvtColor(cv2.imread("images/red_pawn.png"), 3)
 BLUE_PAWN = cv2.cvtColor(cv2.imread("images/blue_pawn.png"), 3)
 RED_QUEEN = cv2.cvtColor(cv2.imread("images/red_queen.png"), 3)
 BLUE_QUEEN = cv2.cvtColor(cv2.imread("images/blue_queen.png"), 3)
+BACKGROUND = cv2.cvtColor(cv2.imread("images/background.jpg"), 3)
+WINDOW_BACKGROUND = cv2.cvtColor(cv2.imread("images/window_background.jpg"), 3)
+BOARD_BACKGROUND = cv2.cvtColor(cv2.imread("images/window_background.jpg"), 3)
+BUTTON = cv2.rotate(cv2.cvtColor(cv2.imread("images/button_menu.jpg"), 3), 2)
+BUTTON2 = cv2.rotate(cv2.cvtColor(cv2.imread("images/button_menu2.jpg"), 3), 2)
+BUTTON3 = cv2.rotate(cv2.cvtColor(cv2.imread("images/button_menu3.jpg"), 3), 2)
+
+BOARD_SIZE = RECT_SIZE*9
+
+BAR_SIZE_Y = 100
+
 FONT = pg.font.SysFont('Comic Sans MS', 32)
 FONT_TEXT = pg.font.SysFont('Comic Sans MS', 20)
 NO_GAMES = "NoGamesSaved"

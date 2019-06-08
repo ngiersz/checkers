@@ -210,10 +210,13 @@ class CheckersWindow:
         returns: True
         """
 
-        self._screen.fill(ccc.BEIGE)
+        # self._screen.fill(ccc.BEIGE)
         self._screen.blit(self._background, [0, 0, ccw.SIZE[0], ccw.SIZE[1]])
         self._screen.blit(self._board_background, [ccw.RECT_OFFSET_X - ccw.RECT_SIZE/2,
                                                    ccw.RECT_OFFSET_Y - ccw.RECT_SIZE/2, ccw.BOARD_SIZE, ccw.BOARD_SIZE])
+        self._screen.blit(self._camera_window, (ccw.CAMERA_OFFSET_X-20, ccw.CAMERA_OFFSET_Y-20))
+
+        self._screen.blit(self._bottom_bar, (0, ccw.SIZE[1]-ccw.BAR_SIZE_Y))
 
         # Drawing chessboard
         r_counter = 0
@@ -257,10 +260,7 @@ class CheckersWindow:
         img = np.rot90(img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = pg.surfarray.make_surface(img)
-        self._screen.blit(self._camera_window, (ccw.CAMERA_OFFSET_X-20, ccw.CAMERA_OFFSET_Y-20))
         self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))
-
-        self._screen.blit(self._bottom_bar, (0, ccw.SIZE[1]-ccw.BAR_SIZE_Y))
 
         self._all_sprites.draw(self._screen)
 

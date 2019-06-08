@@ -1,5 +1,6 @@
 import os
 import pygame as pg
+import cv2
 pg.init()
 
 import checkers.configs.config_colors as ccc
@@ -22,26 +23,35 @@ class MenuWindow:
         self._done = False
         self._all_sprites = pg.sprite.Group()
         self._dt = self._clock.tick(30) / 1000
+
         self._screen_color = ccc.BEIGE
+        self._screen_background = ccc.BEIGE
+
+        self.button_normal = ccc.BEIGE
+        self.button_hover = ccc.BEIGE
+        self.button_down = ccc.BEIGE
+
+        self.init_textures()
 
         self.start_button = Button(
-            ccm.MENU_SIZE[0] / 2 - ccm.NORMAL_RECT / 2,  ccm.MENU_SIZE[1]/3,
+            ccm.MENU_SIZE[0] / 2 - ccm.NORMAL_RECT,  ccm.MENU_SIZE[1]/3,
             ccm.NORMAL_RECT*2, ccm.NORMAL_RECT, self.checker_window,
-            cb.FONT, 'Checkers', (255, 255, 255))
+            cb.FONT, 'Checkers', (255, 255, 255), self.button_normal, self.button_hover,self.button_down)
         # If you don't pass images, the default images will be used.
         self.archive_button = Button(
-            ccm.MENU_SIZE[0] / 2 - ccm.NORMAL_RECT / 2,  ccm.MENU_SIZE[1]/3+ccm.NORMAL_RECT*2,
+            ccm.MENU_SIZE[0] / 2 - ccm.NORMAL_RECT,  ccm.MENU_SIZE[1]/3 + ccm.NORMAL_RECT*2,
             ccm.NORMAL_RECT*2, ccm.NORMAL_RECT, self.archive_window,
             cb.FONT, 'Archive', (255, 255, 255),
-            cb.IMAGE_NORMAL, cb.IMAGE_HOVER, cb.IMAGE_DOWN)
+            self.button_normal, self.button_hover, self.button_down
+        )
         self.settings_button = Button(
-            ccm.MENU_SIZE[0] / 2 - ccm.NORMAL_RECT / 2, ccm.MENU_SIZE[1]/3+ccm.NORMAL_RECT*4,
+            ccm.MENU_SIZE[0] / 2 - ccm.NORMAL_RECT, ccm.MENU_SIZE[1]/3 + ccm.NORMAL_RECT*4,
             ccm.NORMAL_RECT*2, ccm.NORMAL_RECT, self.settings_window,
-            cb.FONT, 'Settings', (255, 255, 255))
+            cb.FONT, 'Settings', (255, 255, 255), self.button_normal, self.button_hover,self.button_down)
         self.quit_button = Button(
-            ccm.MENU_SIZE[0] / 2 - ccm.NORMAL_RECT / 2, ccm.MENU_SIZE[1] / 3 + ccm.NORMAL_RECT * 6,
+            ccm.MENU_SIZE[0] / 2 - ccm.NORMAL_RECT, ccm.MENU_SIZE[1] / 3 + ccm.NORMAL_RECT*6,
             ccm.NORMAL_RECT * 2, ccm.NORMAL_RECT, self.quit_game,
-            cb.FONT, 'Quit', (255, 255, 255))
+            cb.FONT, 'Quit', (255, 255, 255), self.button_normal, self.button_hover,self.button_down)
 
         # Add the button sprites to the sprite group.
         self._all_sprites.add(self.start_button, self.archive_button, self.settings_button, self.quit_button)
@@ -57,7 +67,8 @@ class MenuWindow:
             self.draw()
 
     def draw(self):
-        self._screen.fill(self._screen_color)
+        # self._screen.fill(self._screen_color)
+        self._screen.blit(self._screen_background, [0, 0, ccm.MENU_SIZE[0], ccm.MENU_SIZE[1]])
         self._all_sprites.draw(self._screen)
         pg.display.update()
 
@@ -110,6 +121,13 @@ class MenuWindow:
 
     def quit_game(self):
         self._done = True
+
+    def init_textures(self):
+        self._screen_background = pg.surfarray.make_surface(ccm.BACKGROUND)
+        self.button_normal = pg.surfarray.make_surface(ccm.BUTTON)
+        self.button_hover = pg.surfarray.make_surface(ccm.BUTTON2)
+        self.button_down = pg.surfarray.make_surface(ccm.BUTTON3)
+
 
 
 
