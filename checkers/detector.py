@@ -2,6 +2,7 @@ import cv2
 import imutils
 import numpy as np
 from checkers.Field import Field
+from checkers.Field import Player
 import requests
 from statistics import mode
 from cv2 import aruco
@@ -231,15 +232,6 @@ def get_chessboard_as_image(image):
 #     pass
 
 
-# cv2.namedWindow("Trackbars")
-# cv2.createTrackbar("L-H", "Trackbars", 0, 180, nothing)
-# cv2.createTrackbar("L-S", "Trackbars", 66, 255, nothing)
-# cv2.createTrackbar("L-V", "Trackbars", 134, 255, nothing)
-# cv2.createTrackbar("U-H", "Trackbars", 180, 180, nothing)
-# cv2.createTrackbar("U-S", "Trackbars", 255, 255, nothing)
-# cv2.createTrackbar("U-V", "Trackbars", 243, 255, nothing)
-
-
 def start(camera_image, last_result, n=5):
     n_results = [[] for i in range(64)]
     counter = 0
@@ -251,7 +243,6 @@ def start(camera_image, last_result, n=5):
 
         try:
             image = get_chessboard_as_image(camera_image)
-
             # Converts images from BGR to HSV
             imgScale = 2.5
             newX, newY = image.shape[1] * imgScale, image.shape[0] * imgScale
@@ -259,12 +250,6 @@ def start(camera_image, last_result, n=5):
             image_HSV = cv2.cvtColor(image_resized.copy(), cv2.COLOR_BGR2HSV)
 
 
-            l_h = cv2.getTrackbarPos("L-H", "Trackbars")
-            l_s = cv2.getTrackbarPos("L-S", "Trackbars")
-            l_v = cv2.getTrackbarPos("L-V", "Trackbars")
-            u_h = cv2.getTrackbarPos("U-H", "Trackbars")
-            u_s = cv2.getTrackbarPos("U-S", "Trackbars")
-            u_v = cv2.getTrackbarPos("U-V", "Trackbars")
             # lower_blue = np.array([l_h, l_s, l_v])
             # upper_blue = np.array([u_h, u_s, u_v])
 
@@ -287,6 +272,7 @@ def start(camera_image, last_result, n=5):
             blue_mask = cv2.dilate(blue_mask, kernel, iterations=2)
             # cv2.imshow("blue po", blue_mask)
             # cv2.waitKey(1)
+
             blue_pawns, blue_queens = get_list_of_pawns_points(image=blue_mask, threshold=131)
 
             # # Find red pawns
@@ -318,6 +304,8 @@ def start(camera_image, last_result, n=5):
                                                             list_of_red_pawns_points=red_pawns,
                                                             list_of_red_queens_points=red_queens)
 
+            print(len(blue_pawns))
+            print(len(red_pawns))
 
             for i, x in enumerate(info_about_each_field):
                 n_results[i].append(x)
@@ -330,7 +318,7 @@ def start(camera_image, last_result, n=5):
 
         except Exception as e:
             number_of_fails += 1
-            # print("exception: " + str(e))
+            print("exception: " + str(e))
             continue
 
         if cv2.waitKey(1) == 27:

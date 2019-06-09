@@ -4,19 +4,18 @@ import json
 import cv2
 import numpy as np
 import requests
-import time
-# import eventlet
 import threading
 from checkers.Field import Field
 from checkers.Field import Player
 import checkers.configs.config_checkers_window as ccw
 import checkers.configs.config_colors as ccc
-import checkers.configs.config_buttons as cb
 from checkers.button import Button
 from checkers.detector import start
 from checkers.move_validation import MoveValidation
 import checkers.utils as utils
-
+from checkers.text_field import TextField
+from checkers.winner_window import WinnerWindow
+import time
 
 class CheckersWindow:
     """
@@ -37,6 +36,7 @@ class CheckersWindow:
         self._move_validation = MoveValidation()
         self._game = []
         self._game.append(self._state)
+        self._move_made = False
 
         self._screen = pg.display.set_mode(ccw.SIZE, pg.FULLSCREEN)
         self.changing_name = False
@@ -73,6 +73,9 @@ class CheckersWindow:
         self._img = self._frame.copy()
         self._img_print = self._img.copy()
 
+        self._error_message = None
+        self._error_counter = 0
+
         pg.display.set_caption("checkers")
         self.init_textures()
 
@@ -89,7 +92,12 @@ class CheckersWindow:
                                         ccw.SET_STATE_OFFSET_Y,
                                         ccw.SET_STATE_WIDTH, ccw.SET_STATE_HEIGHT, self.reset_state, ccw.FONT,
                                         "Reset", (255, 255, 255), self.button_normal, self.button_hover,self.button_down)
-        self._all_sprites.add(self.change_name_field, self.save_game_button, self.set_status)
+        self.move_comunicate = TextField(ccw.MOVE_COMMUNICATE_OFFSET_X,
+                                         ccw.MOVE_COMMUNICATE_OFFSET_Y,
+                                         ccw.MOVE_COMMUNICATE_WIDTH,
+                                         ccw.MOVE_COMMUNICATE_HEIGHT,
+                                         'Turn: Blue pawns')
+        self._all_sprites.add(self.change_name_field, self.save_game_button, self.set_status, self.move_comunicate)
 
     def run(self):
         """
@@ -153,7 +161,9 @@ class CheckersWindow:
         while not self._done:
             temp_old_state = self._state.copy()
             temp_old_img = self._img.copy()
-            self._img, self._state = start(self._frame, self._state, n=10)
+            self._img, self._state = start(self._frame, self._state, n=1)
+            self.winner = None
+
             if self._reset:
                 self._game = []
                 self._game.append(self._state.copy())
@@ -166,13 +176,40 @@ class CheckersWindow:
                     print('Error!: ', self._move_validation.ErrorMessage)
                     self._state = temp_old_state.copy()
                     self._img_print = temp_old_img.copy()
+
+                    if self._error_message == self._move_validation.ErrorMessage:
+                        self._error_counter += 1
+                    else:
+                        self._error_message = self._move_validation.ErrorMessage
+                        self._error_counter = 0
+
+                    if self._error_counter > 10:
+                        self.move_comunicate.set_text('Error: ' + self._move_validation.ErrorMessage)
+                        self._error_counter = 0
+                        self._error_message = None
                 else:
                     # self._img = cv2.flip(self._img, 1)
                     print('Success!: ', self._move_validation.SuccessMessage)
+                    self.move_comunicate.set_text('Correct move')
                     self._img_print = self._img.copy()
+                    self._move_made = True
+                    piece_count = self._move_validation.count_pieces()
 
                     if "No differences" not in self._move_validation.SuccessMessage:
                         self._save = True
+
+                    if piece_count.Current_black == 0:
+                        self.winner = "BLUE"
+                    elif piece_count.Current_white == 0:
+                        self.winner = "RED"
+
+                    if self.winner != None and self._move_made == True:
+                        self.move_comunicate.set_text('We have a winner! Player: ' + str(self.winner))
+                        time.sleep(3)
+                        self._done = True
+                        # self.run_winner_window(self.winner)
+                    #     run winner window
+
             if self._save:
                 self._game.append(self._state)
                 self._save = False
@@ -323,6 +360,9 @@ class CheckersWindow:
                 self._url = json_data["url"]
         except Exception as e:
             print(e)
+
+    def run_winner_window(self, winner):
+        WinnerWindow(winner).run()
 
     def main(self):
         t1 = threading.Thread(target=self.run_logic)
