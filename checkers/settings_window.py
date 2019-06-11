@@ -155,7 +155,7 @@ class SettingsWindow:
 
     def load_settings(self):
         try:
-            with open("configs/url.py", "r") as json_file:
+            with open("configs/url.txt", "r") as json_file:
                 json_data = json.load(json_file)
                 self._url = json_data["url"]
                 self._ip = json_data["ip"]
@@ -165,7 +165,7 @@ class SettingsWindow:
 
     def save_settings(self):
         try:
-            with open("configs/url.py", "w") as json_file:
+            with open("configs/url.txt", "w") as json_file:
                 data = {"url": self._url, "ip": self._ip, "port": self._port}
                 json.dump(data, json_file)
 

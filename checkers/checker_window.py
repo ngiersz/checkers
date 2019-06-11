@@ -355,7 +355,7 @@ class CheckersWindow:
 
     def load_url(self):
         try:
-            with open("configs/url.py", "r") as json_file:
+            with open("configs/url.txt", "r") as json_file:
                 json_data = json.load(json_file)
                 self._url = json_data["url"]
         except Exception as e:
