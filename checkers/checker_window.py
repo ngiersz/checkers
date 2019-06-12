@@ -95,7 +95,7 @@ class CheckersWindow:
                                          ccw.MOVE_COMMUNICATE_OFFSET_Y,
                                          ccw.MOVE_COMMUNICATE_WIDTH,
                                          ccw.MOVE_COMMUNICATE_HEIGHT,
-                                         'Turn: Blue pawns',  ccw.FONT, (255, 255, 255), self.button_normal)
+                                         'Turn: Blue pawns',  ccw.FONT, (255, 255, 255), self.button_text_normal)
         self._all_sprites.add(self.change_name_field, self.save_game_button, self.set_status, self.move_comunicate)
 
     def run(self):
@@ -188,7 +188,7 @@ class CheckersWindow:
                         self._error_counter = 0
 
                     if self._error_counter > 10:
-                        self.move_comunicate.set_text('Error: ' + self._move_validation.ErrorMessage)
+                        self.move_comunicate.set_text(self._move_validation.ErrorMessage)
                         self._error_counter = 0
                         self._error_message = None
 
@@ -200,7 +200,7 @@ class CheckersWindow:
                                                        and self._move_validation.SuccessMessage != ''):
                         self._move_made = True
                     print('Success!: ', self._move_validation.SuccessMessage)
-                    self.move_comunicate.set_text('Correct move')
+                    self.move_comunicate.set_text('')
                     self._img_print = self._img.copy()
                     piece_count = self._move_validation.count_pieces()
 
@@ -215,7 +215,7 @@ class CheckersWindow:
                     if self.winner != None and self._move_made == True:
                         self.move_comunicate.set_text('We have a winner! Player: ' + str(self.winner))
                         time.sleep(3)
-                        self._done = True
+                        # self._done = True
                         # self.run_winner_window(self.winner)
                     #     run winner window
 
@@ -308,6 +308,7 @@ class CheckersWindow:
         img = cv2.flip(self._img_print, 1)
         img = np.rot90(img)
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = cv2.resize(img, (500, 500))
         img = pg.surfarray.make_surface(img)
         self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))
 
