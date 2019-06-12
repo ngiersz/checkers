@@ -82,8 +82,7 @@ class CheckersWindow:
         self.change_name_field = Button(ccw.SELECT_NAME_OFFSET_X,
                                         ccw.SELECT_NAME_OFFSET_Y,
                                         ccw.SELECT_NAME_WIDTH, ccw.SELECT_NAME_HEIGHT, self.change_name, ccw.FONT,
-                                        self.name_to_set, (255, 255, 255), self.button_text_normal,
-                                        self.button_text_hover,self.button_text_down)
+                                        self.name_to_set, (255, 255, 255), self.button_normal, self.button_hover,self.button_down)
         self.save_game_button = Button(ccw.SAVE_GAME_OFFSET_X,
                                         ccw.SAVE_GAME_OFFSET_Y,
                                         ccw.SAVE_GAME_WIDTH, ccw.SAVE_GAME_HEIGHT, self.save_game, ccw.FONT,
@@ -96,7 +95,7 @@ class CheckersWindow:
                                          ccw.MOVE_COMMUNICATE_OFFSET_Y,
                                          ccw.MOVE_COMMUNICATE_WIDTH,
                                          ccw.MOVE_COMMUNICATE_HEIGHT,
-                                         'Turn: Blue pawns')
+                                         'Turn: Blue pawns',  ccw.FONT, (255, 255, 255), self.button_normal)
         self._all_sprites.add(self.change_name_field, self.save_game_button, self.set_status, self.move_comunicate)
 
     def run(self):
@@ -151,6 +150,8 @@ class CheckersWindow:
             img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
             self._frame = cv2.imdecode(img_arr, -1)
         except Exception as e:
+            self._error_message = "NO CONNECTION"
+            self.move_comunicate.set_text(self._error_message)
             print(e)
 
     def run_logic(self):
