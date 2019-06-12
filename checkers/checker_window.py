@@ -169,10 +169,13 @@ class CheckersWindow:
                 self._game = []
                 self._game.append(self._state.copy())
                 self._reset = False
+                self._move_made = False
+                self.move_comunicate.set_text('Turn: Blue pawns')
             else:
                 self._move_validation.compare_boards(temp_old_state, self._state)
                 temp_result, self._player = self._move_validation.validate_move(self._player)
                 print(self._player)
+
                 if not temp_result:
                     print('Error!: ', self._move_validation.ErrorMessage)
                     self._state = temp_old_state.copy()
@@ -188,12 +191,17 @@ class CheckersWindow:
                         self.move_comunicate.set_text('Error: ' + self._move_validation.ErrorMessage)
                         self._error_counter = 0
                         self._error_message = None
+
                 else:
                     # self._img = cv2.flip(self._img, 1)
+                    if (self._move_made is False) and (self._move_validation.SuccessMessage is 'No differences'):
+                        self.move_comunicate.set_text('Turn: Blue pawns')
+                    if (self._move_made is False) and (self._move_validation.SuccessMessage != 'No differences'
+                                                       and self._move_validation.SuccessMessage != ''):
+                        self._move_made = True
                     print('Success!: ', self._move_validation.SuccessMessage)
                     self.move_comunicate.set_text('Correct move')
                     self._img_print = self._img.copy()
-                    self._move_made = True
                     piece_count = self._move_validation.count_pieces()
 
                     if "No differences" not in self._move_validation.SuccessMessage:
@@ -210,6 +218,9 @@ class CheckersWindow:
                         self._done = True
                         # self.run_winner_window(self.winner)
                     #     run winner window
+
+                if not self._move_made:
+                    self.move_comunicate.set_text('Turn: Blue pawns')
 
             if self._save:
                 self._game.append(self._state)
