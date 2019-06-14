@@ -4,18 +4,18 @@ import json
 import cv2
 import numpy as np
 import requests
-import time
-# import eventlet
 import threading
-from checkers.Field import Field
-from checkers.Field import Player
+from checkers.fields import Field
+from checkers.fields import Player
 import checkers.configs.config_checkers_window as ccw
 import checkers.configs.config_colors as ccc
-import checkers.configs.config_buttons as cb
 from checkers.button import Button
-from checkers.detector import start
+from checkers.detector import detect
 from checkers.move_validation import MoveValidation
-
+import checkers.utils as utils
+from checkers.text_field import TextField
+from checkers.winner_window import WinnerWindow
+import time
 
 class CheckersWindow:
     """
@@ -27,13 +27,16 @@ class CheckersWindow:
     """
 
     def __init__(self):
-        self._url = "http://192.168.2.7:8080/shot.jpg"
+        self.load_url()
+        # self._url = "http://192.168.43.1:8080/shot.jpg"
 
         self._player = Player.WHITE
         self._camera = None
         self._state = ccw.BEGIN_STATE
         self._move_validation = MoveValidation()
-        self._game = [self._state]
+        self._game = []
+        self._game.append(self._state)
+        self._move_made = False
 
         self._screen = pg.display.set_mode(ccw.SIZE, pg.FULLSCREEN)
         self.changing_name = False
@@ -45,8 +48,23 @@ class CheckersWindow:
 
         self._black_field = ccc.BLACK
         self._white_field = ccc.WHITE
-        self._white_pawn = ccc.WHITE
-        self._black_pawn = ccc.BLACK
+        self._blue_pawn = ccc.BLUE
+        self._red_pawn = ccc.RED
+        self._blue_queen = ccc.BLUE
+        self._red_queen = ccc.RED
+        self._background = ccc.BEIGE
+        self._camera_window = ccc.BEIGE
+        self._bottom_bar = ccc.BEIGE
+        self._board_background = ccc.BEIGE
+
+        self.button_normal = ccw.IMAGE_NORMAL
+        self.button_hover = ccw.IMAGE_HOVER
+        self.button_down = ccw.IMAGE_DOWN
+
+        self.button_text_normal = ccw.IMAGE_TEXT_NORMAL
+        self.button_text_hover = ccw.IMAGE_TEXT_HOVER
+        self.button_text_down = ccw.IMAGE_TEXT_DOWN
+
         self._clock = pg.time.Clock()
 
         self._dt = self._clock.tick(30) / 1000
@@ -55,22 +73,30 @@ class CheckersWindow:
         self._img = self._frame.copy()
         self._img_print = self._img.copy()
 
+        self._error_message = None
+        self._error_counter = 0
+
         pg.display.set_caption("checkers")
         self.init_textures()
 
         self.change_name_field = Button(ccw.SELECT_NAME_OFFSET_X,
                                         ccw.SELECT_NAME_OFFSET_Y,
                                         ccw.SELECT_NAME_WIDTH, ccw.SELECT_NAME_HEIGHT, self.change_name, ccw.FONT,
-                                        self.name_to_set, (255, 0, 0))
+                                        self.name_to_set, (255, 255, 255), self.button_normal, self.button_hover,self.button_down)
         self.save_game_button = Button(ccw.SAVE_GAME_OFFSET_X,
                                         ccw.SAVE_GAME_OFFSET_Y,
                                         ccw.SAVE_GAME_WIDTH, ccw.SAVE_GAME_HEIGHT, self.save_game, ccw.FONT,
-                                        "Save Game", (255, 0, 0))
+                                        "Save Game", (255, 255, 255), self.button_normal, self.button_hover,self.button_down)
         self.set_status = Button(ccw.SET_STATE_OFFSET_X,
                                         ccw.SET_STATE_OFFSET_Y,
                                         ccw.SET_STATE_WIDTH, ccw.SET_STATE_HEIGHT, self.reset_state, ccw.FONT,
-                                        "Reset", (255, 0, 0))
-        self._all_sprites.add(self.change_name_field, self.save_game_button, self.set_status)
+                                        "Reset", (255, 255, 255), self.button_normal, self.button_hover,self.button_down)
+        self.move_comunicate = TextField(ccw.MOVE_COMMUNICATE_OFFSET_X,
+                                         ccw.MOVE_COMMUNICATE_OFFSET_Y,
+                                         ccw.MOVE_COMMUNICATE_WIDTH,
+                                         ccw.MOVE_COMMUNICATE_HEIGHT,
+                                         'Turn: Blue pawns',  ccw.FONT, (255, 255, 255), self.button_text_normal)
+        self._all_sprites.add(self.change_name_field, self.save_game_button, self.set_status, self.move_comunicate)
 
     def run(self):
         """
@@ -120,13 +146,12 @@ class CheckersWindow:
         returns: True
         """
         try:
-            img_resp = requests.get(self._url, verify=False, timeout=0.2)
+            img_resp = requests.get(self._url, verify=False, timeout=0.1)
             img_arr = np.array(bytearray(img_resp.content), dtype=np.uint8)
             self._frame = cv2.imdecode(img_arr, -1)
         except Exception as e:
-            self._frame = cv2.imread('chessboardClean.png')
-            self._frame = cv2.resize(self._frame, (500, 500))
-            self._img = self._frame.copy()
+            self._error_message = "NO CONNECTION"
+            self.move_comunicate.set_text(self._error_message)
             print(e)
 
     def run_logic(self):
@@ -137,26 +162,71 @@ class CheckersWindow:
         while not self._done:
             temp_old_state = self._state.copy()
             temp_old_img = self._img.copy()
-            self._img, self._state = start(self._frame, self._state, n=10)
+            self._img, self._state = detect(self._frame, self._state)
+            self.winner = None
+
             if self._reset:
+                self._game = []
+                self._game.append(self._state.copy())
                 self._reset = False
+                self._move_made = False
+                self.move_comunicate.set_text('Turn: Blue pawns')
             else:
                 self._move_validation.compare_boards(temp_old_state, self._state)
                 temp_result, self._player = self._move_validation.validate_move(self._player)
                 print(self._player)
+
                 if not temp_result:
                     print('Error!: ', self._move_validation.ErrorMessage)
                     self._state = temp_old_state.copy()
                     self._img_print = temp_old_img.copy()
+
+                    if self._error_message == self._move_validation.ErrorMessage:
+                        self._error_counter += 1
+                    else:
+                        self._error_message = self._move_validation.ErrorMessage
+                        self._error_counter = 0
+
+                    if self._error_counter > 10:
+                        self.move_comunicate.set_text(self._move_validation.ErrorMessage)
+                        self._error_counter = 0
+                        self._error_message = None
+
                 else:
                     # self._img = cv2.flip(self._img, 1)
+                    if (self._move_made is False) and (self._move_validation.SuccessMessage is 'No differences'):
+                        self.move_comunicate.set_text('Turn: Blue pawns')
+                    if (self._move_made is False) and (self._move_validation.SuccessMessage != 'No differences'
+                                                       and self._move_validation.SuccessMessage != ''):
+                        self._move_made = True
                     print('Success!: ', self._move_validation.SuccessMessage)
+                    self.move_comunicate.set_text('')
                     self._img_print = self._img.copy()
+                    piece_count = self._move_validation.count_pieces()
 
-        if self._save:
-            self._game.append(self._state)
+                    if "No differences" not in self._move_validation.SuccessMessage:
+                        self._save = True
+
+                    if piece_count.Current_black == 0:
+                        self.winner = "BLUE"
+                    elif piece_count.Current_white == 0:
+                        self.winner = "RED"
+
+                    if self.winner != None and self._move_made == True:
+                        self.move_comunicate.set_text('We have a winner! Player: ' + str(self.winner))
+                        time.sleep(3)
+                        # self._done = True
+                        # self.run_winner_window(self.winner)
+                    #     run winner window
+
+                if not self._move_made:
+                    self.move_comunicate.set_text('Turn: Blue pawns')
+
+            if self._save:
+                self._game.append(self._state)
+                self._save = False
+
         self._clock.tick(60)
-        #while not self._done:
 
     def save_game(self):
         """
@@ -165,9 +235,14 @@ class CheckersWindow:
         returns: True
         """
         print("Zapisalem")
-        file_name = 'game_{}'.format(datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
+        print(self._game)
+        game = utils.enum_to_int_game(self._game)
+        if self.name_to_set is not ccw.NO_NAME:
+            file_name = 'games_archive/{}'.format(self.name_to_set)
+        else:
+            file_name = 'games_archive/game_{}'.format(datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S'))
         with open(file_name, 'w') as outfile:
-            json.dump(self._game, outfile)
+            json.dump(game, outfile)
 
     def reset_state(self):
         """
@@ -184,7 +259,13 @@ class CheckersWindow:
         returns: True
         """
 
-        self._screen.fill(ccc.BEIGE)
+        # self._screen.fill(ccc.BEIGE)
+        self._screen.blit(self._background, [0, 0, ccw.SIZE[0], ccw.SIZE[1]])
+        self._screen.blit(self._board_background, [ccw.RECT_OFFSET_X - ccw.RECT_SIZE/2,
+                                                   ccw.RECT_OFFSET_Y - ccw.RECT_SIZE/2, ccw.BOARD_SIZE, ccw.BOARD_SIZE])
+        self._screen.blit(self._camera_window, (ccw.CAMERA_OFFSET_X-20, ccw.CAMERA_OFFSET_Y-20))
+
+        self._screen.blit(self._bottom_bar, (0, ccw.SIZE[1]-ccw.BAR_SIZE_Y))
 
         # Drawing chessboard
         r_counter = 0
@@ -192,29 +273,33 @@ class CheckersWindow:
             f_counter = 0
             for field in row:
                 if field == Field.BLACK:
-                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                          ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                          ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
                 elif field == Field.WHITE:
-                    self._screen.blit(self._white_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+                    self._screen.blit(self._white_field, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                          ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                          ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
                 elif field == Field.BLACK_FIELD_BLUE_PAWN:
-                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+                    self._screen.blit(self._blue_pawn, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                        ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                        ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
 
-                    pg.draw.ellipse(self._screen, ccc.BLUE, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                              ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                              ccw.PAWN_SIZE, ccw.PAWN_SIZE])
                 elif field == Field.BLACK_FIELD_RED_PAWN:
-                    self._screen.blit(self._black_field, [ccw.RECT_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                          ccw.RECT_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                          ccw.RECT_SIZE, ccw.RECT_SIZE])
+                    self._screen.blit(self._red_pawn, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                       ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                       ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
 
-                    pg.draw.ellipse(self._screen, ccc.RED, [ccw.PAWN_OFFSET_X + (ccw.RECT_SIZE * f_counter),
-                                                              ccw.PAWN_OFFSET_Y + r_counter * ccw.RECT_SIZE,
-                                                              ccw.PAWN_SIZE, ccw.PAWN_SIZE])
+                elif field == Field.BLACK_FIELD_BLUE_QUEEN:
+                    self._screen.blit(self._blue_queen, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                         ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                         ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
+
+                elif field == Field.BLACK_FIELD_RED_QUEEN:
+                    self._screen.blit(self._red_queen, [ccw.RECT_OFFSET_X + int(ccw.RECT_SIZE*1.0) * f_counter,
+                                                        ccw.RECT_OFFSET_Y + r_counter*ccw.RECT_SIZE,
+                                                        ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)])
+
                 f_counter = f_counter + 1
             r_counter = r_counter + 1
 
@@ -222,7 +307,8 @@ class CheckersWindow:
         # img = np.rot90(self._img_print)
         img = cv2.flip(self._img_print, 1)
         img = np.rot90(img)
-        #img = self._img
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = cv2.resize(img, (500, 500))
         img = pg.surfarray.make_surface(img)
         self._screen.blit(img, (ccw.CAMERA_OFFSET_X, ccw.CAMERA_OFFSET_Y))
 
@@ -248,14 +334,48 @@ class CheckersWindow:
             self.name_to_set = ""
 
     def init_textures(self):
-        self._black_field = cv2.resize(ccw.BLACK_FIELD, (ccw.RECT_SIZE, ccw.RECT_SIZE))
+        self._black_field = cv2.resize(ccw.BLACK_FIELD, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._black_field = cv2.rotate(self._black_field, 0)
         self._black_field = pg.surfarray.make_surface(self._black_field)
-        self._white_field = cv2.resize(ccw.WHITE_FIELD, (ccw.RECT_SIZE, ccw.RECT_SIZE))
+        self._white_field = cv2.resize(ccw.WHITE_FIELD, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._white_field = cv2.rotate(self._white_field, 0)
         self._white_field = pg.surfarray.make_surface(self._white_field)
-        self._white_pawn = cv2.resize(ccw.WHITE_PAWN, (ccw.RECT_SIZE, ccw.RECT_SIZE))
-        self._white_pawn = pg.surfarray.make_surface(self._white_pawn)
-        self._black_pawn = cv2.resize(ccw.BLACK_PAWN, (ccw.RECT_SIZE, ccw.RECT_SIZE))
-        self._black_pawn = pg.surfarray.make_surface(self._black_pawn)
+        self._blue_pawn = cv2.resize(ccw.BLUE_PAWN, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._blue_pawn = cv2.rotate(self._blue_pawn, 0)
+        self._blue_pawn = pg.surfarray.make_surface(self._blue_pawn)
+        self._blue_queen = cv2.resize(ccw.BLUE_QUEEN, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._blue_queen = cv2.rotate(self._blue_queen, 0)
+        self._blue_queen = pg.surfarray.make_surface(self._blue_queen)
+        self._red_pawn = cv2.resize(ccw.RED_PAWN, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._red_pawn = cv2.rotate(self._red_pawn, 0)
+        self._red_pawn = pg.surfarray.make_surface(self._red_pawn)
+        self._red_queen = cv2.resize(ccw.RED_QUEEN, (ccw.RECT_SIZE, int(ccw.RECT_SIZE*1.0)))
+        self._red_queen = cv2.rotate(self._red_queen, 0)
+        self._red_queen = pg.surfarray.make_surface(self._red_queen)
+        self._background = cv2.resize(ccw.BACKGROUND, ccw.SIZE)
+        self._background = cv2.rotate(self._background, 2)
+        self._background = pg.surfarray.make_surface(self._background)
+        self._camera_window = cv2.resize(ccw.WINDOW_CAMERA, (540, 540))
+        self._camera_window = cv2.rotate(self._camera_window, 2)
+        self._camera_window = pg.surfarray.make_surface(self._camera_window)
+        self._bottom_bar = cv2.resize(ccw.WINDOW_CAMERA, (ccw.SIZE[0], ccw.BAR_SIZE_Y))
+        self._bottom_bar = cv2.rotate(self._bottom_bar, 2)
+        self._bottom_bar = pg.surfarray.make_surface(self._bottom_bar)
+        self._board_background = cv2.resize(ccw.WINDOW_CAMERA, (ccw.BOARD_SIZE, ccw.BOARD_SIZE))
+        self._board_background = cv2.rotate(self._board_background, 2)
+        self._board_background = pg.surfarray.make_surface(self._board_background)
+
+
+    def load_url(self):
+        try:
+            with open("configs/url.txt", "r") as json_file:
+                json_data = json.load(json_file)
+                self._url = json_data["url"]
+        except Exception as e:
+            print(e)
+
+    def run_winner_window(self, winner):
+        WinnerWindow(winner).run()
 
     def main(self):
         t1 = threading.Thread(target=self.run_logic)
