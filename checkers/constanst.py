@@ -1,4 +1,4 @@
-import checkers.Field as br
+import checkers.fields as br
 
 SIZE = 8
 

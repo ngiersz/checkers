@@ -1,6 +1,6 @@
 import checkers.board_recognition as br
 import checkers.constanst as const
-import checkers.Field as enums
+import checkers.fields as enums
 
 
 class Position:

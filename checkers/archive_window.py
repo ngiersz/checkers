@@ -6,7 +6,7 @@ import json
 import checkers.configs.config_archive_window as caw
 import checkers.configs.config_colors as ccc
 import checkers.utils as utils
-from checkers.Field import Field
+from checkers.fields import Field
 from checkers.text_field import TextField
 from checkers.button import Button
 

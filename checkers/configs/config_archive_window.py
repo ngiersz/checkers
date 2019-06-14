@@ -1,6 +1,6 @@
 import cv2
 import pygame as pg
-from checkers.Field import Field
+from checkers.fields import Field
 """
 CONFIG
 Default checkers_window  settings

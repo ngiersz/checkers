@@ -1,5 +1,5 @@
 import pygame.ftfont
-from checkers.Field import Field
+from checkers.fields import Field
 
 
 def text_format(message, text_font, text_size, text_color):

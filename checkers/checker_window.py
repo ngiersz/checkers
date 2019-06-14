@@ -5,12 +5,12 @@ import cv2
 import numpy as np
 import requests
 import threading
-from checkers.Field import Field
-from checkers.Field import Player
+from checkers.fields import Field
+from checkers.fields import Player
 import checkers.configs.config_checkers_window as ccw
 import checkers.configs.config_colors as ccc
 from checkers.button import Button
-from checkers.detector import start
+from checkers.detector import detect
 from checkers.move_validation import MoveValidation
 import checkers.utils as utils
 from checkers.text_field import TextField
@@ -162,7 +162,7 @@ class CheckersWindow:
         while not self._done:
             temp_old_state = self._state.copy()
             temp_old_img = self._img.copy()
-            self._img, self._state = start(self._frame, self._state, n=1)
+            self._img, self._state = detect(self._frame, self._state, n=1)
             self.winner = None
 
             if self._reset:
