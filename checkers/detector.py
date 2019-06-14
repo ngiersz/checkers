@@ -130,8 +130,8 @@ def get_list_of_pawns_points(image):
     return list_of_pawns_points, list_of_queens_points
 
 
-def get_fields_info_as_list(list_of_fields_points, list_of_blue_pawns_points, list_of_blue_queens_points,
-                            list_of_red_pawns_points, list_of_red_queens_points, image):
+def get_fields_info_as_list_of_lists(list_of_fields_points, list_of_blue_pawns_points, list_of_blue_queens_points,
+                                     list_of_red_pawns_points, list_of_red_queens_points, image):
     # initialize list with empty black and white fields
     result = []
     counter = 0
@@ -167,7 +167,18 @@ def get_fields_info_as_list(list_of_fields_points, list_of_blue_pawns_points, li
                 result[id] = Field.BLACK_FIELD_RED_QUEEN
                 break
 
-    return result
+    final_result = []
+    temp_result = []
+
+    for i, each_field in enumerate(result):
+        if i % 8 == 0 and i != 0:
+            final_result.append(temp_result)
+            temp_result = []
+        temp_result.append(each_field)
+
+    final_result.append(temp_result)
+
+    return final_result
 
 
 def get_chessboard_as_image(image):
@@ -206,14 +217,14 @@ def get_chessboard_as_image(image):
 def detect(camera_image, last_result):
     try:
         image = get_chessboard_as_image(camera_image)
-        # Converts images from BGR to HSV
         imgScale = 2.5
         newX, newY = image.shape[1] * imgScale, image.shape[0] * imgScale
         image_resized = cv2.resize(image, (int(newX), int(newY)))
+        # Converts images from BGR to HSV
         image_HSV = cv2.cvtColor(image_resized.copy(), cv2.COLOR_BGR2HSV)
 
         # Find blue pawns
-        lower_blue = np.array([60, 120, 120])  # 20-90, 70-120, 100-140
+        lower_blue = np.array([60, 95, 120])  # 20-90, 70-120, 100-140
         upper_blue = np.array([145, 255, 255])  # 120-170
         blue_mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
         kernel = np.ones((5, 5), np.uint8)
@@ -241,43 +252,20 @@ def detect(camera_image, last_result):
 
         # Find fields
         fields = get_fields_as_list_of_points_list(image)
-        if fields is None:
-            return camera_image, last_result
 
 
-        info_about_each_field = get_fields_info_as_list(list_of_fields_points=fields, image=image,
-                                                        list_of_blue_pawns_points=blue_pawns,
-                                                        list_of_blue_queens_points=blue_queens,
-                                                        list_of_red_pawns_points=red_pawns,
-                                                        list_of_red_queens_points=red_queens)
-
-
-
-
-
-        if image is None:
-            return camera_image, last_result
+        info_about_each_field = get_fields_info_as_list_of_lists(list_of_fields_points=fields, image=image,
+                                                                 list_of_blue_pawns_points=blue_pawns,
+                                                                 list_of_blue_queens_points=blue_queens,
+                                                                 list_of_red_pawns_points=red_pawns,
+                                                                 list_of_red_queens_points=red_queens)
 
     except Exception as e:
         print("exception: " + str(e))
         return camera_image, last_result
 
 
-    result = []
-    temp_result = []
-
-    for i, each_field in enumerate(info_about_each_field):
-        if i % 8 == 0 and i != 0:
-            result.append(temp_result)
-            temp_result = []
-        temp_result.append(each_field)
-
-
-    result.append(temp_result)
-
-    print("result---------------------------------------")
-    print(result)
-    return image, result
+    return image, info_about_each_field
 
 
 def startTest():
@@ -351,11 +339,11 @@ def startTest():
             continue
 
 
-        info_about_each_field = get_fields_info_as_list(list_of_fields_points=fields, image=image,
-                                                        list_of_blue_pawns_points=blue_pawns,
-                                                        list_of_blue_queens_points=blue_queens,
-                                                        list_of_red_pawns_points=red_pawns,
-                                                        list_of_red_queens_points=red_queens)
+        info_about_each_field = get_fields_info_as_list_of_lists(list_of_fields_points=fields, image=image,
+                                                                 list_of_blue_pawns_points=blue_pawns,
+                                                                 list_of_blue_queens_points=blue_queens,
+                                                                 list_of_red_pawns_points=red_pawns,
+                                                                 list_of_red_queens_points=red_queens)
         cv2.imshow("Wykryte pionki", image)
         cv2.waitKey(1)
 
