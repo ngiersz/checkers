@@ -11,24 +11,6 @@ ERROR_LIMIT = 30
 
 
 def detect_shape(contour):
-    # # initialize the shape name and approximate the contour
-    # shape = None
-    # peri = 0.04 * cv2.arcLength(contours, True)
-    # approx = cv2.approxPolyDP(contours, peri, True)
-    # # if the shape has 4 vertices, it is either a square or
-    # # a rectangle
-    # if len(approx) == 4:
-    #     # a square will have an aspect ratio that is approximately
-    #     # equal to one, otherwise, the shape is a rectangle
-    #     shape = "square"  # if ar >= 0.95 and ar <= 1.05 else "rectangle"
-    # elif len(approx) == 3:
-    #     shape = "triangle"
-    # # # otherwise, we assume the shape is a circle
-    # else:
-    #     shape = "circle"
-    print("Contours Type: " + str(type(contour)))
-    print(str(contour))
-
     shape = None
     approx = cv2.approxPolyDP(contour, 0.1 * cv2.arcLength(contour, True), True)
 
@@ -108,18 +90,12 @@ def get_fields_as_list_of_points_list(image):
             list_of_points_list = list_of_points_list + list_of_points_in_one_row
             list_of_points_in_one_row = []
 
-    # draw number of field
-    # for i in range(len(list_of_points_list)):
-    #     cv2.putText(image, str(i), (list_of_points_list[i][0], list_of_points_list[i][1]), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (127, 127, 127), 2 , cv2.LINE_AA)
-    # print(len(list_of_points_list[5]))
-    print("lista")
-    print(list_of_points_list)
     return list_of_points_list  # , image
 
 
-def get_list_of_pawns_points(image, threshold):
+def get_list_of_pawns_points(image):
     blurred = cv2.GaussianBlur(image, (5, 5), 0)
-    thresh = cv2.threshold(blurred, threshold, 255, cv2.THRESH_BINARY)[1]
+    thresh = cv2.threshold(blurred, 130, 255, cv2.THRESH_BINARY)[1]
 
     contours_temp, _ = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -227,123 +203,78 @@ def get_chessboard_as_image(image):
 #     pass
 
 
-def detect(camera_image, last_result, n=1):
-    n_results = [[] for i in range(64)]
-    counter = 0
-    number_of_fails = 0
-    while counter < n:
+def detect(camera_image, last_result):
+    try:
+        image = get_chessboard_as_image(camera_image)
+        # Converts images from BGR to HSV
+        imgScale = 2.5
+        newX, newY = image.shape[1] * imgScale, image.shape[0] * imgScale
+        image_resized = cv2.resize(image, (int(newX), int(newY)))
+        image_HSV = cv2.cvtColor(image_resized.copy(), cv2.COLOR_BGR2HSV)
 
-        if number_of_fails > 10:
+        # Find blue pawns
+        lower_blue = np.array([60, 120, 120])  # 20-90, 70-120, 100-140
+        upper_blue = np.array([145, 255, 255])  # 120-170
+        blue_mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
+        kernel = np.ones((5, 5), np.uint8)
+        blue_mask = cv2.erode(blue_mask, kernel, iterations=1)
+        blue_mask = cv2.dilate(blue_mask, kernel, iterations=2)
+        imgScale = 0.4
+        newX, newY = blue_mask.shape[1] * imgScale, blue_mask.shape[0] * imgScale
+        blue_mask = cv2.resize(blue_mask, (int(newX), int(newY)))
+        blue_pawns, blue_queens = get_list_of_pawns_points(image=blue_mask)
+
+        # Find red pawns
+        lower_red_and_blue = np.array([0, 120, 130])
+        upper_red_and_blue = np.array([180, 255, 255])
+        red_and_blue_mask = cv2.inRange(image_HSV, lower_red_and_blue, upper_red_and_blue)
+        kernel = np.ones((5, 5), np.uint8)
+
+        red_and_blue_mask = cv2.erode(red_and_blue_mask, kernel, iterations=1)
+        red_and_blue_mask = cv2.dilate(red_and_blue_mask, kernel, iterations=2)
+
+        imgScale = 0.4
+        newX, newY = red_and_blue_mask.shape[1] * imgScale, red_and_blue_mask.shape[0] * imgScale
+        red_and_blue_mask = cv2.resize(red_and_blue_mask, (int(newX), int(newY)))
+        red_mask = cv2.bitwise_and(red_and_blue_mask, cv2.bitwise_not(blue_mask))
+        red_pawns, red_queens = get_list_of_pawns_points(image=red_mask)
+
+        # Find fields
+        fields = get_fields_as_list_of_points_list(image)
+        if fields is None:
             return camera_image, last_result
 
-        try:
-            image = get_chessboard_as_image(camera_image)
-            # Converts images from BGR to HSV
-            imgScale = 2.5
-            newX, newY = image.shape[1] * imgScale, image.shape[0] * imgScale
-            image_resized = cv2.resize(image, (int(newX), int(newY)))
-            image_HSV = cv2.cvtColor(image_resized.copy(), cv2.COLOR_BGR2HSV)
 
-            # lower_blue = np.array([l_h, l_s, l_v])
-            # upper_blue = np.array([u_h, u_s, u_v])
-
-            # Find blue pawns
-            # lower_blue = np.array([30, 90, 110])
-            # upper_blue = np.array([130, 255, 255])
-            # noc
-            # lower_blue = np.array([40, 40, 120])
-            # upper_blue = np.array([150, 255, 255])
-            # dzien
-            lower_blue = np.array([60, 95, 120])  # 20-90, 70-120, 100-140
-            upper_blue = np.array([145, 255, 255])  # 120-170
-            # lower_blue = np.array([l_h, l_s, l_v])
-            # upper_blue = np.array([u_h, u_s, u_v])
-            blue_mask = cv2.inRange(image_HSV, lower_blue, upper_blue)
-            kernel = np.ones((5, 5), np.uint8)
-            # cv2.imshow("blue przed", blue_mask)
-            # cv2.waitKey(1)
-            blue_mask = cv2.erode(blue_mask, kernel, iterations=1)
-            blue_mask = cv2.dilate(blue_mask, kernel, iterations=2)
-            # cv2.imshow("blue po", blue_mask)
-            # cv2.waitKey(1)
-            imgScale = 0.4
-            newX, newY = blue_mask.shape[1] * imgScale, blue_mask.shape[0] * imgScale
-            blue_mask = cv2.resize(blue_mask, (int(newX), int(newY)))
-            blue_pawns, blue_queens = get_list_of_pawns_points(image=blue_mask, threshold=131)
-
-            # # Find red pawns
-            lower_red = np.array([0, 100, 130])
-            upper_red = np.array([180, 255, 255])
-            # lower_red = np.array([l_h, l_s, l_v])
-            # upper_red = np.array([u_h, u_s, u_v])
-            red_and_blue_mask = cv2.inRange(image_HSV, lower_red, upper_red)
-            kernel = np.ones((5, 5), np.uint8)
-            # cv2.imshow("red przed", red_and_blue_mask)
-            # cv2.waitKey(1)
-            red_and_blue_mask = cv2.erode(red_and_blue_mask, kernel, iterations=1)
-            red_and_blue_mask = cv2.dilate(red_and_blue_mask, kernel, iterations=2)
-            # cv2.imshow("red po", red_and_blue_mask)
-            # cv2.waitKey(1)
-            imgScale = 0.4
-            newX, newY = red_and_blue_mask.shape[1] * imgScale, red_and_blue_mask.shape[0] * imgScale
-            red_and_blue_mask = cv2.resize(red_and_blue_mask, (int(newX), int(newY)))
-            red_mask = cv2.bitwise_and(red_and_blue_mask, cv2.bitwise_not(blue_mask))
-            red_pawns, red_queens = get_list_of_pawns_points(image=red_mask, threshold=100)
-
-            # Find fields
-            fields = get_fields_as_list_of_points_list(image)
-            if fields is None:
-                number_of_fails += 1
-                continue
+        info_about_each_field = get_fields_info_as_list(list_of_fields_points=fields, image=image,
+                                                        list_of_blue_pawns_points=blue_pawns,
+                                                        list_of_blue_queens_points=blue_queens,
+                                                        list_of_red_pawns_points=red_pawns,
+                                                        list_of_red_queens_points=red_queens)
 
 
-            info_about_each_field = get_fields_info_as_list(list_of_fields_points=fields, image=image,
-                                                            list_of_blue_pawns_points=blue_pawns,
-                                                            list_of_blue_queens_points=blue_queens,
-                                                            list_of_red_pawns_points=red_pawns,
-                                                            list_of_red_queens_points=red_queens)
 
 
-            for i, x in enumerate(info_about_each_field):
-                n_results[i].append(x)
 
-            if image is None:
-                counter = counter - 1
-                number_of_fails += 1
-                continue
-            counter = counter + 1
+        if image is None:
+            return camera_image, last_result
 
-        except Exception as e:
-            number_of_fails += 1
-            print("exception: " + str(e))
-            continue
+    except Exception as e:
+        print("exception: " + str(e))
+        return camera_image, last_result
 
-        if cv2.waitKey(1) == 27:
-            break
 
     result = []
     temp_result = []
 
-    for i, each_field in enumerate(n_results):
+    for i, each_field in enumerate(info_about_each_field):
         if i % 8 == 0 and i != 0:
             result.append(temp_result)
             temp_result = []
-        try:
-            temp_result.append(mode(each_field))
-        except:
-            unique_values = set(each_field)
-            value_count_dict = dict.fromkeys(unique_values, 0)
-            for value in each_field:
-                value_count_dict[value] += 1
-            temp_result.append(max(value_count_dict.items(), key=operator.itemgetter(1))[0])
+        temp_result.append(each_field)
+
 
     result.append(temp_result)
 
-    # check result
-    # for x in result:
-    #     for y in x:
-    #         print(y.value, end=';')
-    #     print('')
     print("result---------------------------------------")
     print(result)
     return image, result

@@ -162,7 +162,7 @@ class CheckersWindow:
         while not self._done:
             temp_old_state = self._state.copy()
             temp_old_img = self._img.copy()
-            self._img, self._state = detect(self._frame, self._state, n=1)
+            self._img, self._state = detect(self._frame, self._state)
             self.winner = None
 
             if self._reset:
